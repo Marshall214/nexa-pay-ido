@@ -54,7 +54,7 @@ const JupiterIDO = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   // Constants for display
-  const targetNaira = 500000000; // ₦500M target
+  const targetNaira = 700000000; // ₦700M target
   const ethToNairaRate = 2500000; // 1 ETH = ₦2.5M
 
   // Calculate values from real data
