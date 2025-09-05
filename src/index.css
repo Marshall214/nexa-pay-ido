@@ -8,58 +8,60 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Jupiter-inspired light theme */
-    --background: 0 0% 100%;
-    --foreground: 240 10% 3.9%;
+    /* Jupiter's actual color scheme */
+    --background: 13 17% 9%;
+    --foreground: 0 0% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 240 10% 3.9%;
+    --card: 13 17% 11%;
+    --card-foreground: 0 0% 95%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 240 10% 3.9%;
+    --popover: 13 17% 11%;
+    --popover-foreground: 0 0% 95%;
 
-    --primary: 262 83% 58%;
-    --primary-foreground: 0 0% 98%;
+    --primary: 199 89% 48%;
+    --primary-foreground: 0 0% 9%;
 
-    --secondary: 240 4.8% 95.9%;
-    --secondary-foreground: 240 5.9% 10%;
+    --secondary: 13 17% 15%;
+    --secondary-foreground: 0 0% 95%;
 
-    --muted: 240 4.8% 95.9%;
-    --muted-foreground: 240 3.8% 46.1%;
+    --muted: 13 17% 15%;
+    --muted-foreground: 0 0% 65%;
 
-    --accent: 240 4.8% 95.9%;
-    --accent-foreground: 240 5.9% 10%;
+    --accent: 13 17% 15%;
+    --accent-foreground: 0 0% 95%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
     --success: 142 71% 45%;
     --success-foreground: 0 0% 98%;
 
     --warning: 38 92% 50%;
-    --warning-foreground: 0 0% 98%;
+    --warning-foreground: 0 0% 9%;
 
-    --border: 240 5.9% 90%;
-    --input: 240 5.9% 90%;
-    --ring: 262 83% 58%;
+    --border: 13 17% 20%;
+    --input: 13 17% 15%;
+    --ring: 199 89% 48%;
 
-    /* Jupiter-style colors */
+    /* Jupiter's signature colors */
+    --jupiter-cyan: 199 89% 48%;
     --jupiter-green: 142 71% 45%;
-    --jupiter-blue: 262 83% 58%;
     --jupiter-purple: 262 83% 58%;
-    --jupiter-gray: 240 3.8% 46.1%;
+    --jupiter-blue: 219 89% 58%;
+    --jupiter-gray: 13 17% 65%;
 
-    /* Clean gradients */
-    --gradient-jupiter: linear-gradient(135deg, hsl(262 83% 58%), hsl(282 83% 58%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 4.8% 98%));
+    /* Jupiter gradients */
+    --gradient-jupiter-main: linear-gradient(135deg, hsl(199 89% 48%), hsl(219 89% 58%));
+    --gradient-jupiter-bg: linear-gradient(135deg, hsl(13 17% 9%), hsl(13 17% 11%));
+    --gradient-card: linear-gradient(135deg, hsl(13 17% 11%), hsl(13 17% 13%));
     --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 40%));
 
-    /* Subtle shadows */
-    --shadow-jupiter: 0 8px 32px hsl(262 83% 58% / 0.12);
-    --shadow-card: 0 1px 3px hsl(240 3.8% 46.1% / 0.1), 0 1px 2px hsl(240 3.8% 46.1% / 0.06);
-    --shadow-button: 0 1px 2px hsl(240 3.8% 46.1% / 0.05);
+    /* Jupiter shadows */
+    --shadow-jupiter: 0 8px 32px hsl(199 89% 48% / 0.15);
+    --shadow-card: 0 4px 20px hsl(13 17% 5% / 0.3);
+    --shadow-button: 0 2px 8px hsl(13 17% 5% / 0.2);
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
     --sidebar-background: 0 0% 98%;
 

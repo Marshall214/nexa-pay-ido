@@ -17,7 +17,9 @@ import {
   AlertCircle,
   Zap,
   TrendingUp,
-  Users
+  Users,
+  Target,
+  DollarSign
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import nexaPayLogo from "@/assets/nexapay-logo.png";
@@ -31,6 +33,9 @@ interface TokenSaleData {
   userNPTBalance: number;
   isConnected: boolean;
   walletAddress: string;
+  targetNaira: number;
+  raisedNaira: number;
+  ethToNairaRate: number;
 }
 
 interface Transaction {
@@ -51,6 +56,9 @@ const JupiterIDO = () => {
     userNPTBalance: 5000,
     isConnected: false,
     walletAddress: "",
+    targetNaira: 500000000, // ₦500M target
+    raisedNaira: 337500000, // ₦337.5M raised so far
+    ethToNairaRate: 2500000, // 1 ETH = ₦2.5M
   });
 
   const [ethAmount, setEthAmount] = useState("");
@@ -59,7 +67,9 @@ const JupiterIDO = () => {
 
   const remainingTokens = tokenSale.totalSupply - tokenSale.soldTokens;
   const saleProgress = (tokenSale.soldTokens / tokenSale.totalSupply) * 100;
+  const fundraisingProgress = (tokenSale.raisedNaira / tokenSale.targetNaira) * 100;
   const nptAmount = ethAmount ? parseFloat(ethAmount) / tokenSale.pricePerToken : 0;
+  const ethAmountInNaira = ethAmount ? parseFloat(ethAmount) * tokenSale.ethToNairaRate : 0;
 
   const connectWallet = async () => {
     setIsLoading(true);
@@ -133,6 +143,7 @@ const JupiterIDO = () => {
           soldTokens: prev.soldTokens + nptAmount,
           userETHBalance: prev.userETHBalance - parseFloat(ethAmount),
           userNPTBalance: prev.userNPTBalance + nptAmount,
+          raisedNaira: prev.raisedNaira + ethAmountInNaira,
         }));
         setEthAmount("");
         toast({
@@ -160,16 +171,16 @@ const JupiterIDO = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20">
+    <div className="min-h-screen bg-gradient-jupiter-bg">
       {/* Header */}
-      <header className="border-b border-border bg-white/80 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-border bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center space-x-3">
               <img src={nexaPayLogo} alt="NexaPay" className="w-8 h-8" />
               <span className="text-xl font-bold text-foreground">NexaPay</span>
-              <Badge variant="secondary" className="bg-jupiter-green/10 text-jupiter-green border-jupiter-green/20">
-                Token Sale
+              <Badge variant="secondary" className="bg-jupiter-green/20 text-jupiter-green border-jupiter-green/30">
+                LIVE
               </Badge>
             </div>
             <div className="flex items-center space-x-4">
@@ -195,16 +206,49 @@ const JupiterIDO = () => {
       <div className="max-w-2xl mx-auto px-4 py-8">
         {/* Hero Section */}
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-4 bg-gradient-jupiter bg-clip-text text-transparent">
+          <h1 className="text-4xl font-bold mb-4 bg-gradient-jupiter-main bg-clip-text text-transparent">
             NexaPay Token Sale
           </h1>
           <p className="text-lg text-muted-foreground mb-6">
             Join the future of decentralized payments. Purchase NPT tokens during our exclusive IDO.
           </p>
           
+          {/* Fundraising Target */}
+          <div className="mb-6">
+            <Card className="bg-gradient-card shadow-card border-border">
+              <CardContent className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <Target className="w-5 h-5 text-jupiter-cyan mr-2" />
+                      <span className="text-sm font-medium text-muted-foreground">Fundraising Target</span>
+                    </div>
+                    <p className="text-2xl font-bold text-foreground">₦{(tokenSale.targetNaira / 1000000).toFixed(0)}M</p>
+                    <p className="text-xs text-muted-foreground">Nigerian Naira</p>
+                  </div>
+                  <div className="text-center">
+                    <div className="flex items-center justify-center mb-2">
+                      <DollarSign className="w-5 h-5 text-jupiter-green mr-2" />
+                      <span className="text-sm font-medium text-muted-foreground">Raised So Far</span>
+                    </div>
+                    <p className="text-2xl font-bold text-jupiter-green">₦{(tokenSale.raisedNaira / 1000000).toFixed(1)}M</p>
+                    <p className="text-xs text-muted-foreground">{fundraisingProgress.toFixed(1)}% of target</p>
+                  </div>
+                </div>
+                <div className="mt-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm text-muted-foreground">Fundraising Progress</span>
+                    <span className="text-sm font-medium">₦{(tokenSale.raisedNaira / 1000000).toFixed(1)}M / ₦{(tokenSale.targetNaira / 1000000).toFixed(0)}M</span>
+                  </div>
+                  <Progress value={fundraisingProgress} className="h-2" />
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
           {/* Sale Stats */}
           <div className="grid grid-cols-3 gap-4 mb-8">
-            <Card className="bg-white shadow-card border-0">
+            <Card className="bg-gradient-card shadow-card border-border">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <TrendingUp className="w-5 h-5 text-jupiter-green mr-2" />
@@ -213,16 +257,16 @@ const JupiterIDO = () => {
                 <p className="text-xl font-bold">{saleProgress.toFixed(1)}%</p>
               </CardContent>
             </Card>
-            <Card className="bg-white shadow-card border-0">
+            <Card className="bg-gradient-card shadow-card border-border">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
-                  <Zap className="w-5 h-5 text-jupiter-blue mr-2" />
+                  <Zap className="w-5 h-5 text-jupiter-cyan mr-2" />
                   <span className="text-sm font-medium text-muted-foreground">Price</span>
                 </div>
                 <p className="text-xl font-bold">{tokenSale.pricePerToken} ETH</p>
               </CardContent>
             </Card>
-            <Card className="bg-white shadow-card border-0">
+            <Card className="bg-gradient-card shadow-card border-border">
               <CardContent className="p-4 text-center">
                 <div className="flex items-center justify-center mb-2">
                   <Users className="w-5 h-5 text-jupiter-purple mr-2" />
@@ -244,7 +288,7 @@ const JupiterIDO = () => {
         </div>
 
         {/* Jupiter-style Swap Interface */}
-        <Card className="bg-white shadow-card border-0 overflow-hidden">
+        <Card className="bg-gradient-card shadow-card border-border overflow-hidden">
           <CardContent className="p-6">
             {!tokenSale.isConnected ? (
               <div className="text-center py-12">
@@ -266,10 +310,10 @@ const JupiterIDO = () => {
             ) : (
               <div className="space-y-4">
                 {/* From Token */}
-                <div className="space-y-2">
+                  <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground">You pay</label>
                   <div className="relative">
-                    <div className="flex items-center bg-secondary/30 rounded-2xl p-4">
+                    <div className="flex items-center bg-secondary/30 rounded-2xl p-4 border border-border">
                       <div className="flex items-center space-x-3 min-w-0 flex-1">
                         <img src={ethLogo} alt="ETH" className="w-8 h-8" />
                         <div className="flex flex-col min-w-0">
@@ -306,7 +350,7 @@ const JupiterIDO = () => {
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-muted-foreground">You receive</label>
                   <div className="relative">
-                    <div className="flex items-center bg-secondary/30 rounded-2xl p-4">
+                    <div className="flex items-center bg-secondary/30 rounded-2xl p-4 border border-border">
                       <div className="flex items-center space-x-3 min-w-0 flex-1">
                         <img src={nexaPayLogo} alt="NPT" className="w-8 h-8" />
                         <div className="flex flex-col min-w-0">
@@ -330,14 +374,18 @@ const JupiterIDO = () => {
 
                 {/* Transaction Info */}
                 {ethAmount && parseFloat(ethAmount) > 0 && (
-                  <div className="bg-secondary/20 rounded-lg p-4 space-y-2">
+                  <div className="bg-secondary/20 rounded-lg p-4 space-y-2 border border-border">
                     <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Rate</span>
                       <span className="font-medium">1 ETH = {(1 / tokenSale.pricePerToken).toLocaleString()} NPT</span>
                     </div>
                     <div className="flex justify-between text-sm">
+                      <span className="text-muted-foreground">Value in Naira</span>
+                      <span className="font-medium text-jupiter-cyan">₦{ethAmountInNaira.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
                       <span className="text-muted-foreground">Network fee</span>
-                      <span className="font-medium">~$5.00</span>
+                      <span className="font-medium">~₦12,500</span>
                     </div>
                   </div>
                 )}
@@ -365,7 +413,7 @@ const JupiterIDO = () => {
 
         {/* Recent Transactions */}
         {transactions.length > 0 && (
-          <Card className="mt-6 bg-white shadow-card border-0">
+          <Card className="mt-6 bg-gradient-card shadow-card border-border">
             <CardContent className="p-6">
               <h3 className="font-semibold mb-4">Recent Transactions</h3>
               <div className="space-y-3">

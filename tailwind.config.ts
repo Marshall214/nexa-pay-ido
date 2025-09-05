@@ -60,9 +60,10 @@ export default {
 					DEFAULT: 'hsl(var(--warning))',
 					foreground: 'hsl(var(--warning-foreground))'
 				},
+				'jupiter-cyan': 'hsl(var(--jupiter-cyan))',
 				'jupiter-green': 'hsl(var(--jupiter-green))',
-				'jupiter-blue': 'hsl(var(--jupiter-blue))',
 				'jupiter-purple': 'hsl(var(--jupiter-purple))',
+				'jupiter-blue': 'hsl(var(--jupiter-blue))',
 				'jupiter-gray': 'hsl(var(--jupiter-gray))',
 				sidebar: {
 					DEFAULT: 'hsl(var(--sidebar-background))',
@@ -76,7 +77,8 @@ export default {
 				}
 			},
 			backgroundImage: {
-				'gradient-jupiter': 'var(--gradient-jupiter)',
+				'gradient-jupiter-main': 'var(--gradient-jupiter-main)',
+				'gradient-jupiter-bg': 'var(--gradient-jupiter-bg)',
 				'gradient-card': 'var(--gradient-card)',
 				'gradient-success': 'var(--gradient-success)',
 			},

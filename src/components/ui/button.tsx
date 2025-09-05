@@ -9,16 +9,16 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-jupiter-blue text-white hover:bg-jupiter-blue/90 shadow-button transition-all duration-200",
+        default: "bg-jupiter-cyan text-white hover:bg-jupiter-cyan/90 shadow-button transition-all duration-200",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90",
         outline:
-          "border border-border bg-white hover:bg-secondary/50 text-foreground shadow-button",
+          "border border-border bg-card hover:bg-secondary/50 text-foreground shadow-button",
         secondary:
           "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-button",
         ghost: "hover:bg-secondary/50 text-foreground",
-        link: "text-jupiter-blue underline-offset-4 hover:underline",
-        jupiter: "bg-gradient-jupiter text-white hover:opacity-90 shadow-jupiter transition-all duration-200",
+        link: "text-jupiter-cyan underline-offset-4 hover:underline",
+        jupiter: "bg-gradient-jupiter-main text-white hover:opacity-90 shadow-jupiter transition-all duration-200",
         success: "bg-jupiter-green text-white hover:bg-jupiter-green/90 shadow-button transition-all duration-200",
       },
       size: {
