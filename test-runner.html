@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NexaPay IDO - Test Runner</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #0d1117;
+            color: #e6edf3;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-section {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .test-section h3 {
+            color: #58a6ff;
+            margin-top: 0;
+        }
+        .test-case {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .test-case h4 {
+            color: #f0f6fc;
+            margin-top: 0;
+        }
+        .test-steps {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .test-steps ol {
+            margin: 0;
+            padding-left: 20px;
+        }
+        .expected-result {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            border-left: 3px solid #238636;
+        }
+        .critical {
+            border-left: 3px solid #f85149;
+        }
+        .important {
+            border-left: 3px solid #fb8500;
+        }
+        .nice-to-have {
+            border-left: 3px solid #58a6ff;
+        }
+        .priority {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .critical-priority { background: #f85149; color: white; }
+        .important-priority { background: #fb8500; color: white; }
+        .nice-priority { background: #58a6ff; color: white; }
+        .test-data {
+            background: #0d1117;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+        .contract-info {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .contract-address {
+            font-family: 'Courier New', monospace;
+            background: #0d1117;
+            padding: 8px;
+            border-radius: 4px;
+            margin: 5px 0;
+            word-break: break-all;
+        }
+        .test-checklist {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .checklist-item {
+            margin: 10px 0;
+            padding: 10px;
+            background: #0d1117;
+            border-radius: 4px;
+            border-left: 3px solid #30363d;
+        }
+        .checklist-item input[type="checkbox"] {
+            margin-right: 10px;
+        }
+        .automated-test {
+            background: #161b22;
+            border: 1px solid #30363d;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .code-block {
+            background: #0d1117;
+            border: 1px solid #21262d;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            overflow-x: auto;
+        }
+        .run-button {
+            background: #238636;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        .run-button:hover {
+            background: #2ea043;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🚀 NexaPay IDO Platform - Test Suite</h1>
+        <p>Comprehensive end-to-end testing for your IDO platform</p>
+    </div>
+
+    <div class="contract-info">
+        <h3>📋 Contract Information</h3>
+        <p><strong>NexaPayToken:</strong></p>
+        <div class="contract-address">0x0a5385Af31C7b9deEeAb6cEabacC3e1244920246</div>
+        <p><strong>NPT_IDO:</strong></p>
+        <div class="contract-address">0xBD0Df2f72d89a5F3E5E96A9902eFc207aA730090</div>
+        <p><strong>Network:</strong> Sepolia Testnet (Chain ID: 11155111)</p>
+    </div>
+
+    <div class="automated-test">
+        <h3>🤖 Automated Tests</h3>
+        <p>Run automated tests in your browser console:</p>
+        <div class="code-block">
+// Copy and paste this into your browser console on the IDO app page
+fetch('/test-script.js')
+  .then(response => response.text())
+  .then(script => eval(script));
+        </div>
+        <button class="run-button" onclick="runAutomatedTests()">Run Automated Tests</button>
+    </div>
+
+    <div class="test-checklist">
+        <h3>✅ Pre-Test Checklist</h3>
+        <div class="checklist-item">
+            <input type="checkbox" id="metamask">
+            <label for="metamask">MetaMask installed and configured</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="sepolia">
+            <label for="sepolia">Sepolia testnet added to MetaMask</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="eth">
+            <label for="eth">Sepolia ETH obtained for testing</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="contracts">
+            <label for="contracts">Contracts deployed and verified</label>
+        </div>
+        <div class="checklist-item">
+            <input type="checkbox" id="app">
+            <label for="app">App running on localhost:5173</label>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔗 Wallet Connection Tests</h3>
+        
+        <div class="test-case critical">
+            <h4><span class="priority critical-priority">CRITICAL</span>Test Case 1.1: Initial State</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Open app in browser</li>
+                    <li>Verify "Connect Wallet" button is visible</li>
+                    <li>Verify no wallet address is displayed</li>
+                    <li>Verify purchase interface shows "Connect Your Wallet" message</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> App loads successfully, Connect Wallet button is enabled, no wallet information displayed
+            </div>
+        </div>
+
+        <div class="test-case critical">
+            <h4><span class="priority critical-priority">CRITICAL</span>Test Case 1.2: Successful Wallet Connection</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Click "Connect Wallet" button</li>
+                    <li>MetaMask popup appears</li>
+                    <li>Select account and click "Connect"</li>
+                    <li>Approve connection</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Wallet connects successfully, wallet address displayed in header, purchase interface becomes available, toast notification shows "Wallet Connected"
+            </div>
+        </div>
+
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 1.3: Wallet Connection Rejection</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Click "Connect Wallet" button</li>
+                    <li>MetaMask popup appears</li>
+                    <li>Click "Cancel" or reject connection</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Connection is rejected, app remains in disconnected state, error toast shows "Connection Failed"
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>💰 Token Purchase Tests</h3>
+        
+        <div class="test-case critical">
+            <h4><span class="priority critical-priority">CRITICAL</span>Test Case 3.1: Valid Purchase</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Connect wallet</li>
+                    <li>Enter ETH amount: 0.01</li>
+                    <li>Verify NPT amount calculation: 100 NPT</li>
+                    <li>Click "Buy NPT Tokens"</li>
+                    <li>Confirm transaction in MetaMask</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Transaction submitted successfully, transaction hash displayed, success toast shows "Purchase Successful!", data refreshes with new balances
+            </div>
+        </div>
+
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 3.2: Invalid Amount - Zero</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Connect wallet</li>
+                    <li>Enter ETH amount: 0</li>
+                    <li>Click "Buy NPT Tokens"</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Error toast shows "Invalid Amount", transaction not submitted, button remains disabled
+            </div>
+        </div>
+
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 3.3: Different Purchase Amounts</h4>
+            <div class="test-data">
+                <strong>Test Data:</strong><br>
+                • 0.001 ETH → 10 NPT<br>
+                • 0.01 ETH → 100 NPT<br>
+                • 0.1 ETH → 1,000 NPT<br>
+                • 1.0 ETH → 10,000 NPT
+            </div>
+            <div class="test-steps">
+                <ol>
+                    <li>Connect wallet</li>
+                    <li>For each amount, enter value and verify calculation</li>
+                    <li>Complete purchase</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> All calculations correct, all purchases successful, balances update correctly
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🧮 Calculation Tests</h3>
+        
+        <div class="test-case critical">
+            <h4><span class="priority critical-priority">CRITICAL</span>Test Case 6.1: NPT Calculation</h4>
+            <div class="test-data">
+                <strong>Formula:</strong> NPT = ETH / 0.0001<br>
+                <strong>Test Values:</strong><br>
+                • 0.001 ETH → 10 NPT<br>
+                • 0.01 ETH → 100 NPT<br>
+                • 0.1 ETH → 1,000 NPT<br>
+                • 1.0 ETH → 10,000 NPT
+            </div>
+            <div class="test-steps">
+                <ol>
+                    <li>Enter each ETH amount</li>
+                    <li>Verify calculated NPT amount</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> All calculations are accurate
+            </div>
+        </div>
+
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 6.2: Naira Conversion</h4>
+            <div class="test-data">
+                <strong>Formula:</strong> Naira = ETH × 2,500,000<br>
+                <strong>Test Values:</strong><br>
+                • 0.001 ETH → ₦2,500<br>
+                • 0.01 ETH → ₦25,000<br>
+                • 0.1 ETH → ₦250,000<br>
+                • 1.0 ETH → ₦2,500,000
+            </div>
+            <div class="test-steps">
+                <ol>
+                    <li>Enter each ETH amount</li>
+                    <li>Verify Naira value display</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> All conversions accurate
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🔄 Integration Tests</h3>
+        
+        <div class="test-case critical">
+            <h4><span class="priority critical-priority">CRITICAL</span>Test Case 8.1: End-to-End Purchase Flow</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Open app</li>
+                    <li>Connect wallet</li>
+                    <li>Enter 0.01 ETH</li>
+                    <li>Verify 100 NPT calculation</li>
+                    <li>Click buy</li>
+                    <li>Confirm in MetaMask</li>
+                    <li>Wait for confirmation</li>
+                    <li>Verify balances updated</li>
+                    <li>Check transaction on Etherscan</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Complete flow works without errors, all data updates correctly, transaction visible on blockchain
+            </div>
+        </div>
+
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 8.2: Multiple Purchases</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Connect wallet</li>
+                    <li>Make purchase 1: 0.01 ETH</li>
+                    <li>Wait for confirmation</li>
+                    <li>Make purchase 2: 0.005 ETH</li>
+                    <li>Wait for confirmation</li>
+                    <li>Verify both transactions in history</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Both purchases successful, balances cumulative, history shows both transactions
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>📱 UI/UX Tests</h3>
+        
+        <div class="test-case important">
+            <h4><span class="priority important-priority">IMPORTANT</span>Test Case 4.1: Responsive Design</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Test on desktop (1920x1080)</li>
+                    <li>Test on tablet (768x1024)</li>
+                    <li>Test on mobile (375x667)</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Layout adapts correctly, all elements visible and clickable, no horizontal scrolling
+            </div>
+        </div>
+
+        <div class="test-case nice-to-have">
+            <h4><span class="priority nice-priority">NICE TO HAVE</span>Test Case 4.2: Loading States</h4>
+            <div class="test-steps">
+                <ol>
+                    <li>Connect wallet (should show "Connecting...")</li>
+                    <li>Make purchase (should show "Processing...")</li>
+                    <li>Wait for data refresh</li>
+                </ol>
+            </div>
+            <div class="expected-result">
+                <strong>Expected Result:</strong> Loading states display correctly, buttons disabled during loading, spinner animations work
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h3>🐛 Bug Reporting</h3>
+        <div class="test-case">
+            <h4>Bug Report Template</h4>
+            <div class="code-block">
+<strong>Bug ID:</strong> [Unique identifier]<br>
+<strong>Severity:</strong> [Critical/High/Medium/Low]<br>
+<strong>Test Case:</strong> [Which test case failed]<br>
+<strong>Steps to Reproduce:</strong><br>
+1. [Step 1]<br>
+2. [Step 2]<br>
+3. [Step 3]<br>
+<strong>Expected Result:</strong> [What should happen]<br>
+<strong>Actual Result:</strong> [What actually happened]<br>
+<strong>Screenshots:</strong> [If applicable]<br>
+<strong>Browser/OS:</strong> [Browser version and OS]<br>
+<strong>Wallet:</strong> [MetaMask version]<br>
+<strong>Network:</strong> [Sepolia]
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function runAutomatedTests() {
+            // Load and run the automated test script
+            fetch('test-script.js')
+                .then(response => response.text())
+                .then(script => {
+                    console.log('Running automated tests...');
+                    eval(script);
+                })
+                .catch(error => {
+                    console.error('Error loading test script:', error);
+                    alert('Error loading test script. Make sure test-script.js is in the same directory.');
+                });
+        }
+
+        // Add some interactivity to the checklist
+        document.addEventListener('DOMContentLoaded', function() {
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const item = this.closest('.checklist-item');
+                    if (this.checked) {
+                        item.style.borderLeftColor = '#238636';
+                        item.style.background = '#0d1117';
+                    } else {
+                        item.style.borderLeftColor = '#30363d';
+                        item.style.background = '#0d1117';
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
