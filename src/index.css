@@ -8,57 +8,58 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Dark blockchain theme */
-    --background: 220 13% 9%;
-    --foreground: 220 13% 98%;
+    /* Jupiter-inspired light theme */
+    --background: 0 0% 100%;
+    --foreground: 240 10% 3.9%;
 
-    --card: 220 13% 11%;
-    --card-foreground: 220 13% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 10% 3.9%;
 
-    --popover: 220 13% 11%;
-    --popover-foreground: 220 13% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 10% 3.9%;
 
-    --primary: 236 72% 59%;
-    --primary-foreground: 220 13% 9%;
+    --primary: 262 83% 58%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 220 13% 15%;
-    --secondary-foreground: 220 13% 98%;
+    --secondary: 240 4.8% 95.9%;
+    --secondary-foreground: 240 5.9% 10%;
 
-    --muted: 220 13% 15%;
-    --muted-foreground: 220 13% 65%;
+    --muted: 240 4.8% 95.9%;
+    --muted-foreground: 240 3.8% 46.1%;
 
-    --accent: 266 85% 58%;
-    --accent-foreground: 220 13% 98%;
+    --accent: 240 4.8% 95.9%;
+    --accent-foreground: 240 5.9% 10%;
 
-    --destructive: 0 84% 60%;
-    --destructive-foreground: 220 13% 98%;
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 98%;
 
-    --success: 142 72% 29%;
-    --success-foreground: 220 13% 98%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 98%;
 
-    --warning: 48 96% 53%;
-    --warning-foreground: 220 13% 9%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 98%;
 
-    --border: 220 13% 20%;
-    --input: 220 13% 15%;
-    --ring: 236 72% 59%;
+    --border: 240 5.9% 90%;
+    --input: 240 5.9% 90%;
+    --ring: 262 83% 58%;
 
-    /* Blockchain specific colors */
-    --electric-blue: 199 89% 48%;
-    --cyber-purple: 266 85% 58%;
-    --neon-green: 142 76% 36%;
-    --crypto-gold: 48 96% 53%;
+    /* Jupiter-style colors */
+    --jupiter-green: 142 71% 45%;
+    --jupiter-blue: 262 83% 58%;
+    --jupiter-purple: 262 83% 58%;
+    --jupiter-gray: 240 3.8% 46.1%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(236 72% 59%), hsl(266 85% 58%));
-    --gradient-card: linear-gradient(135deg, hsl(220 13% 11%), hsl(220 13% 13%));
-    --gradient-success: linear-gradient(135deg, hsl(142 76% 36%), hsl(142 72% 29%));
+    /* Clean gradients */
+    --gradient-jupiter: linear-gradient(135deg, hsl(262 83% 58%), hsl(282 83% 58%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(240 4.8% 98%));
+    --gradient-success: linear-gradient(135deg, hsl(142 71% 45%), hsl(142 71% 40%));
 
-    /* Shadows */
-    --shadow-glow: 0 0 20px hsl(236 72% 59% / 0.3);
-    --shadow-card: 0 4px 20px hsl(220 13% 5% / 0.5);
+    /* Subtle shadows */
+    --shadow-jupiter: 0 8px 32px hsl(262 83% 58% / 0.12);
+    --shadow-card: 0 1px 3px hsl(240 3.8% 46.1% / 0.1), 0 1px 2px hsl(240 3.8% 46.1% / 0.06);
+    --shadow-button: 0 1px 2px hsl(240 3.8% 46.1% / 0.05);
 
-    --radius: 0.75rem;
+    --radius: 1rem;
 
     --sidebar-background: 0 0% 98%;
 

@@ -1,7 +1,7 @@
-import IDODashboard from "@/components/IDODashboard";
+import JupiterIDO from "@/components/JupiterIDO";
 
 const Index = () => {
-  return <IDODashboard />;
+  return <JupiterIDO />;
 };
 
 export default Index;
