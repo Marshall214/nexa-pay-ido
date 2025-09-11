@@ -11,8 +11,6 @@ contract NPT_IDO is ReentrancyGuard, Ownable {
     uint256 public tokensSold;
     uint256 public tokensPerEth;
 
-    uint256 public startTimestamp;
-    uint256 public endTimestamp;
     bool public paused;
 
     uint256 public minContributionWei;
@@ -32,20 +30,15 @@ contract NPT_IDO is ReentrancyGuard, Ownable {
     constructor(
         address tokenAddress,
         uint256 _tokensForSale,
-        uint256 _tokensPerEth,
-        uint256 _startTimestamp,
-        uint256 _endTimestamp
+        uint256 _tokensPerEth
     ) Ownable(msg.sender) {
         require(tokenAddress != address(0), "invalid token");
         require(_tokensForSale > 0, "tokensForSale zero");
         require(_tokensPerEth > 0, "tokensPerEth zero");
-        require(_startTimestamp < _endTimestamp, "bad time window");
 
         token = IERC20(tokenAddress);
         tokensForSale = _tokensForSale;
         tokensPerEth = _tokensPerEth;
-        startTimestamp = _startTimestamp;
-        endTimestamp = _endTimestamp;
 
         minContributionWei = 0;
         maxContributionWei = type(uint256).max;
@@ -54,7 +47,6 @@ contract NPT_IDO is ReentrancyGuard, Ownable {
 
     modifier onlyWhileOpen() {
         require(!paused, "paused");
-        require(block.timestamp >= startTimestamp && block.timestamp <= endTimestamp, "not open");
         _;
     }
 
@@ -99,7 +91,6 @@ contract NPT_IDO is ReentrancyGuard, Ownable {
     }
 
     function recoverUnsoldTokens(address to) external onlyOwner {
-        require(block.timestamp > endTimestamp, "sale not ended");
         uint256 contractBalance = token.balanceOf(address(this));
         if (contractBalance > 0) {
             bool ok = token.transfer(to, contractBalance);
@@ -121,12 +112,6 @@ contract NPT_IDO is ReentrancyGuard, Ownable {
     function setTokensPerEth(uint256 _tokensPerEth) external onlyOwner {
         require(_tokensPerEth > 0, "zero price");
         tokensPerEth = _tokensPerEth;
-    }
-
-    function setSaleWindow(uint256 _start, uint256 _end) external onlyOwner {
-        require(_start < _end, "bad window");
-        startTimestamp = _start;
-        endTimestamp = _end;
     }
 
     function setUseWhitelist(bool flag) external onlyOwner {
