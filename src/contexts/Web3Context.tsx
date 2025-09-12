@@ -34,6 +34,7 @@ const NPT_IDO_ABI = [
 ];
 
 import { CONTRACT_ADDRESSES } from '../config/contracts';
+import { NETWORK_CONFIG } from '../config/network';
 
 interface Web3ContextType {
   // Connection state
@@ -118,6 +119,10 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         
         setTokenContract(tokenContract);
         setIdoContract(idoContract);
+
+        console.log("Web3Context - Initialized Token Contract Address:", CONTRACT_ADDRESSES.NEXAPAY_TOKEN);
+        console.log("Web3Context - Initialized IDO Contract Address:", CONTRACT_ADDRESSES.NPT_IDO);
+        console.log("Web3Context - Initialized RPC URL:", NETWORK_CONFIG.SEPOLIA.rpcUrls[0]);
 
         // Check if already connected
         const accounts = await ethereum.request({ method: 'eth_accounts' });
