@@ -33,8 +33,7 @@ const NPT_IDO_ABI = [
   "event UnsoldTokensRecovered(address indexed to, uint256 amount)"
 ];
 
-import { CONTRACT_ADDRESSES } from '../config/contracts';
-import { NETWORK_CONFIG } from '../config/network';
+import { CONTRACT_ADDRESSES, NETWORK_CONFIG } from '../config/contracts';
 
 interface Web3ContextType {
   // Connection state
