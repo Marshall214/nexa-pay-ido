@@ -19,35 +19,18 @@ const NEXAPAY_TOKEN_ABI = [
 ];
 
 const NPT_IDO_ABI = [
-  // IDO contract functions
-  "function token() view returns (address)",
+  // IDO contract functions (simplified to match your current NPT_IDO.sol)
   "function tokensForSale() view returns (uint256)",
   "function tokensSold() view returns (uint256)",
   "function tokensPerEth() view returns (uint256)",
-  "function startTimestamp() view returns (uint256)",
-  "function endTimestamp() view returns (uint256)",
-  "function paused() view returns (bool)",
-  "function minContributionWei() view returns (uint256)",
-  "function maxContributionWei() view returns (uint256)",
-  "function useWhitelist() view returns (bool)",
-  "function whitelist(address) view returns (bool)",
-  "function contributions(address) view returns (uint256)",
-  "function tokensPurchased(address) view returns (uint256)",
-  "function tokensRemaining() view returns (uint256)",
+  "function tokensPurchased(address) view returns (uint256)", // Public mapping getter
+  "function tokensRemaining() view returns (uint256)", // Public view function
   "function buy() payable",
-  "function setPaused(bool) external",
-  "function setContributionLimits(uint256, uint256) external",
-  "function setTokensPerEth(uint256) external",
-  "function setSaleWindow(uint256, uint256) external",
-  "function setUseWhitelist(bool) external",
-  "function updateWhitelist(address, bool) external",
-  "function batchUpdateWhitelist(address[], bool) external",
   "function withdrawFunds(address, uint256) external",
   "function recoverUnsoldTokens(address) external",
   "event Bought(address indexed buyer, uint256 weiAmount, uint256 tokensAmount)",
   "event Withdraw(address indexed to, uint256 amountWei)",
-  "event UnsoldTokensRecovered(address indexed to, uint256 amount)",
-  "event WhitelistUpdated(address indexed account, bool allowed)"
+  "event UnsoldTokensRecovered(address indexed to, uint256 amount)"
 ];
 
 import { CONTRACT_ADDRESSES } from '../config/contracts';
@@ -76,16 +59,8 @@ interface Web3ContextType {
     tokensForSale: string;
     tokensSold: string;
     tokensPerEth: string;
-    startTimestamp: number;
-    endTimestamp: number;
-    paused: boolean;
-    minContribution: string;
-    maxContribution: string;
-    useWhitelist: boolean;
-    userContribution: string;
     userTokensPurchased: string;
     tokensRemaining: string;
-    isWhitelisted: boolean;
   } | null;
   
   // Methods
@@ -218,51 +193,27 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         userBalance: ethers.formatEther(userBalance)
       });
 
-      // Get IDO data
+      // Get IDO data (simplified to match your current NPT_IDO.sol)
       const [
         tokensForSale,
         tokensSold,
         tokensPerEth,
-        startTimestamp,
-        endTimestamp,
-        paused,
-        minContribution,
-        maxContribution,
-        useWhitelist,
-        userContribution,
         userTokensPurchased,
         tokensRemaining,
-        isWhitelisted
       ] = await Promise.all([
         idoContract.tokensForSale(),
         idoContract.tokensSold(),
         idoContract.tokensPerEth(),
-        idoContract.startTimestamp(),
-        idoContract.endTimestamp(),
-        idoContract.paused(),
-        idoContract.minContributionWei(),
-        idoContract.maxContributionWei(),
-        idoContract.useWhitelist(),
-        idoContract.contributions(account),
         idoContract.tokensPurchased(account),
         idoContract.tokensRemaining(),
-        useWhitelist ? idoContract.whitelist(account) : true
       ]);
 
       setIdoData({
         tokensForSale: ethers.formatEther(tokensForSale),
         tokensSold: ethers.formatEther(tokensSold),
         tokensPerEth: ethers.formatEther(tokensPerEth),
-        startTimestamp: Number(startTimestamp),
-        endTimestamp: Number(endTimestamp),
-        paused,
-        minContribution: ethers.formatEther(minContribution),
-        maxContribution: ethers.formatEther(maxContribution),
-        useWhitelist,
-        userContribution: ethers.formatEther(userContribution),
         userTokensPurchased: ethers.formatEther(userTokensPurchased),
         tokensRemaining: ethers.formatEther(tokensRemaining),
-        isWhitelisted
       });
     } catch (err) {
       console.error('Error refreshing data:', err);
