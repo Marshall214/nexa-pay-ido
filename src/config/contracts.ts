@@ -2,9 +2,9 @@
 // UPDATE THESE ADDRESSES WITH YOUR DEPLOYED CONTRACT ADDRESSES ON SEPOLIA
 
 export const CONTRACT_ADDRESSES = {
-  NEXAPAY_TOKEN: process.env.NEXT_PUBLIC_NEXAPAY_TOKEN_ADDRESS || '0x', // NexaPayToken address
-  NPT_IDO: process.env.NEXT_PUBLIC_NPT_IDO_ADDRESS || '0x', // NPT_IDO address
-  OWNER_ADDRESS: process.env.NEXT_PUBLIC_OWNER_ADDRESS || '0x', // Your Contract Owner Address
+  NEXAPAY_TOKEN: process.env.VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS || '0x', // NexaPayToken address
+  NPT_IDO: process.env.VITE_PUBLIC_NPT_IDO_ADDRESS || '0x', // NPT_IDO address
+  OWNER_ADDRESS: process.env.VITE_PUBLIC_OWNER_ADDRESS || '0x', // Your Contract Owner Address
 } as const;
 
 console.log("CONTRACT_ADDRESSES.NEXAPAY_TOKEN:", CONTRACT_ADDRESSES.NEXAPAY_TOKEN);
@@ -15,7 +15,7 @@ export const NETWORK_CONFIG = {
   SEPOLIA: {
     chainId: '0xaa36a7', // 11155111 in hex
     chainName: 'Sepolia Test Network',
-    rpcUrls: [process.env.NEXT_PUBLIC_INFURA_RPC_URL || ''],
+    rpcUrls: [process.env.VITE_PUBLIC_INFURA_RPC_URL || ''],
     blockExplorerUrls: ['https://sepolia.etherscan.io/'],
     nativeCurrency: {
       name: 'SepoliaETH',
