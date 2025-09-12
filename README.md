@@ -10,12 +10,12 @@
 
 ## 🌟 Overview
 
-NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that enables users to participate in Initial DEX Offerings (IDOs) for NexaPay Token (NPT). The platform features a stunning cyberpunk UI, seamless Web3 integration, and robust smart contract functionality.
+NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that enables users to participate in Initial DEX Offerings (IDOs) for NexaPay Token (NPT) using PUSD stablecoin. The platform features a stunning cyberpunk UI, seamless Web3 integration, and robust smart contract functionality.
 
 ### ✨ Key Features
 
 - **🔗 Wallet Integration**: MetaMask connectivity with automatic network detection
-- **💰 Token Purchase**: Real-time ETH to NPT conversion with live price feeds
+- **💰 Token Purchase**: Real-time PUSD to NPT conversion with live price feeds
 - **📊 Live Statistics**: Dynamic sale progress, fundraising goals, and user balances
 - **🎨 Cyberpunk UI**: Immersive dark theme with neon gradients and animations
 - **📱 Responsive Design**: Optimized for desktop, tablet, and mobile devices
@@ -30,9 +30,10 @@ NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that ena
 ### User Journey
 1. **Connect Wallet**: MetaMask integration for secure authentication
 2. **View Statistics**: Real-time sale progress and fundraising metrics
-3. **Calculate Purchase**: Enter ETH amount and see NPT equivalent
-4. **Execute Purchase**: Confirm transaction and receive tokens
-5. **Track History**: View all transactions with status updates
+3. **Approve PUSD**: Grant approval for the IDO contract to spend your PUSD tokens.
+4. **Calculate Purchase**: Enter PUSD amount and see NPT equivalent
+5. **Execute Purchase**: Confirm transaction and receive tokens
+6. **Track History**: View all transactions with status updates
 
 ### Smart Contract Features
 - **Whitelist Management**: Optional participant restrictions
@@ -77,10 +78,14 @@ NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that ena
 
 ### Blockchain Setup
 - **Sepolia Testnet** ETH for testing
-- **Contract Addresses** (update in `src/config/contracts.ts`):
-  ```typescript
-  NEXAPAY_TOKEN: '0x0a5385Af31C7b9deEeAb6cEabacC3e1244920246'
-  NPT_IDO: '0xBD0Df2f72d89a5F3E5E96A9902eFc207aA730090'
+- **PUSD Test Tokens** for purchasing NPT
+- **Contract Addresses** (update in `.env.local` and Vercel environment variables):
+  ```env
+  VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
+  VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
+  VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+  VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
+  VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
   ```
 
 ### Network Configuration
@@ -107,13 +112,18 @@ bun install
 ```
 
 ### 3. Configure Environment
-Update contract addresses in `src/config/contracts.ts`:
-```typescript
-export const CONTRACT_ADDRESSES = {
-  NEXAPAY_TOKEN: 'YOUR_DEPLOYED_TOKEN_ADDRESS',
-  NPT_IDO: 'YOUR_DEPLOYED_IDO_ADDRESS',
-} as const;
+Create `.env.local` file in your project root with the following:
+```env
+VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
+VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
+VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
+VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
 ```
+
+**For Vercel Deployment:**
+
+Ensure these same environment variables are configured in your Vercel project settings (under Project Settings -> Environment Variables) with the exact `VITE_PUBLIC_` prefixes and values. Remember to select "Production" (and other relevant environments) and trigger a new deployment after making changes.
 
 ### 4. Start Development Server
 ```bash
@@ -131,11 +141,18 @@ bun run dev
 ## ⚙️ Configuration
 
 ### Environment Variables
-Create `.env.local` file:
+This project uses client-side environment variables prefixed with `VITE_PUBLIC_`.
+
+Create a `.env.local` file in your project root for local development:
 ```env
-VITE_INFURA_KEY=your_infura_project_key
-VITE_ALCHEMY_KEY=your_alchemy_api_key
+VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
+VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
+VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
+VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
 ```
+
+For Vercel deployment, ensure these same variables are configured in your Vercel project settings.
 
 ### Contract Deployment
 1. Deploy `NexaPayToken.sol` first
@@ -180,16 +197,16 @@ npm run dev
 
 ### Test Coverage
 - **Wallet Connection**: MetaMask integration
-- **Token Purchase**: ETH to NPT conversion
+- **Token Purchase**: PUSD to NPT conversion with approval
 - **Data Loading**: Contract data fetching
 - **UI Components**: Responsive design
 - **Error Handling**: User feedback
 - **Transaction History**: Status tracking
 
 ### Test Data
-- **ETH Amounts**: 0.001, 0.01, 0.1, 1.0 ETH
-- **Expected NPT**: 10, 100, 1,000, 10,000 NPT
-- **Rate**: 1 ETH = 10,000 NPT (0.0001 ETH per NPT)
+- **PUSD Amounts**: 1, 10, 100, 1000 PUSD
+- **Expected NPT**: 200, 2,000, 20,000, 200,000 NPT (based on 1 PUSD = 200 NPT)
+- **Rate**: 1 PUSD = 200 NPT
 
 ## 📦 Build & Deployment
 
@@ -247,22 +264,24 @@ contract NexaPayToken is ERC20, Ownable {
 // IDO Sale Contract
 contract NPT_IDO is ReentrancyGuard, Ownable {
     // Features:
-    // - Token purchase with ETH
+    // - Token purchase with PUSD
+    // - Exchange rate: NPT per PUSD (e.g., 200 NPT per 1 PUSD)
     // - Whitelist management
     // - Contribution limits
     // - Sale timing controls
     // - Emergency pause
-    // - Fund withdrawal
+    // - Fund withdrawal (PUSD)
     // - Token recovery
 }
 ```
 
 ### Contract Functions
-- `buy()` - Purchase tokens with ETH
+- `buy(uint256 pusdAmount)` - Purchase tokens with PUSD
 - `contributions(address)` - View user contributions
 - `tokensPurchased(address)` - View user token balance
 - `setPaused(bool)` - Emergency controls
-- `withdrawFunds(address, uint256)` - Fund management
+- `withdrawFunds(address, uint256)` - Fund management (PUSD)
+- `recoverUnsoldTokens(address)` - Token recovery
 
 ## 🎨 UI/UX Design
 
@@ -294,7 +313,8 @@ connectWallet(): Promise<void>
 disconnectWallet(): void
 
 // Transactions
-buyTokens(ethAmount: string): Promise<string>
+buyTokens(pusdAmount: string): Promise<string>
+approvePUSD(amount: string): Promise<string>
 
 // Data
 refreshData(): Promise<void>
@@ -305,10 +325,9 @@ clearError(): void
 
 ### Contract Events
 ```solidity
-event Bought(address buyer, uint256 weiAmount, uint256 tokensAmount);
-event Withdraw(address to, uint256 amountWei);
+event Bought(address buyer, uint256 pusdAmount, uint256 tokensAmount);
+event Withdraw(address to, uint256 pusdAmount);
 event UnsoldTokensRecovered(address to, uint256 amount);
-event WhitelistUpdated(address account, bool allowed);
 ```
 
 ## 🤝 Contributing

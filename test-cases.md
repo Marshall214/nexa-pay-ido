@@ -5,16 +5,18 @@
 ### Prerequisites
 - MetaMask wallet installed and configured
 - Sepolia testnet added to MetaMask
-- Sepolia ETH for testing (get from faucets)
+- Sepolia ETH for testing (for gas fees)
+- PUSD Test Tokens for purchasing NPT
 - Contract addresses deployed on Sepolia:
-  - NexaPayToken: `0x0a5385Af31C7b9deEeAb6cEabacC3e1244920246`
-  - NPT_IDO: `0xBD0Df2f72d89a5F3E5E96A9902eFc207aA730090`
+  - NexaPayToken: `0x806D505157a9858a8b533b4d6715e7a19C62C1a4`
+  - NPT_IDO: `0x47D6d06d34aA875e01d556c29f98e9E6841d9779`
+  - PUSD_TOKEN: `0x1099937F106CD6E182E318391C3E45044FDFd126`
 
 ### Test Data
-- Test ETH amounts: 0.001, 0.01, 0.1, 1.0
-- Expected NPT rate: 1 ETH = 10,000 NPT (0.0001 ETH per NPT)
-- Target fundraising: ₦500M
-- ETH to Naira rate: 1 ETH = ₦2.5M
+- Test PUSD amounts: 1, 10, 100
+- Expected NPT rate: 1 PUSD = 200 NPT
+- Target fundraising: ₦700M
+- PUSD to Naira rate: 1 PUSD = ₦1500 (example rate)
 
 ---
 
@@ -94,9 +96,9 @@
 2. Wait for data to load
 
 **Expected Result**:
-- Tokens for sale: 1,000,000 NPT
+- Tokens for sale: 200,000,000 NPT
 - Tokens sold: Current sold amount
-- Price per token: 0.0001 ETH
+- Price per token: 200 NPT (per 1 PUSD)
 - Sale progress bar updates
 - Remaining tokens calculated correctly
 
@@ -117,12 +119,27 @@
 
 ## 3. TOKEN PURCHASE TESTS
 
-### Test Case 3.1: Valid Purchase
-**Objective**: Successfully purchase NPT tokens
+### Test Case 3.1: Valid PUSD Approval
+**Objective**: Successfully approve PUSD for the IDO contract
 **Steps**:
-1. Connect wallet
-2. Enter ETH amount: 0.01
-3. Verify NPT amount calculation: 100 NPT
+1. Connect wallet with PUSD balance
+2. Enter PUSD amount: 100
+3. Verify "Approve PUSD" button is visible and enabled
+4. Click "Approve PUSD"
+5. Confirm transaction in MetaMask
+
+**Expected Result**:
+- Transaction submitted successfully
+- Transaction hash displayed
+- Success toast: "Approval Successful"
+- "Buy NPT Tokens" button becomes enabled (if conditions met)
+
+### Test Case 3.2: Valid Purchase
+**Objective**: Successfully purchase NPT tokens with approved PUSD
+**Steps**:
+1. Connect wallet with PUSD balance and sufficient allowance (from 3.1)
+2. Enter PUSD amount: 1
+3. Verify NPT amount calculation: 200 NPT
 4. Click "Buy NPT Tokens"
 5. Confirm transaction in MetaMask
 
@@ -133,52 +150,65 @@
 - Data refreshes with new balances
 - Transaction appears in history
 
-### Test Case 3.2: Invalid Amount - Zero
-**Objective**: Handle zero ETH amount
+### Test Case 3.3: Invalid Amount - Zero PUSD
+**Objective**: Handle zero PUSD amount
 **Steps**:
 1. Connect wallet
-2. Enter ETH amount: 0
-3. Click "Buy NPT Tokens"
+2. Enter PUSD amount: 0
+3. Verify "Approve PUSD" and "Buy NPT Tokens" buttons are disabled
 
 **Expected Result**:
-- Error toast: "Invalid Amount"
-- Transaction not submitted
-- Button remains disabled
+- Both buttons remain disabled
+- No toast notifications for invalid amount
 
-### Test Case 3.3: Invalid Amount - Negative
-**Objective**: Handle negative ETH amount
+### Test Case 3.4: Invalid Amount - Negative PUSD
+**Objective**: Handle negative PUSD amount
 **Steps**:
 1. Connect wallet
-2. Enter ETH amount: -0.01
-3. Click "Buy NPT Tokens"
+2. Enter PUSD amount: -1
+3. Verify "Approve PUSD" and "Buy NPT Tokens" buttons are disabled
 
 **Expected Result**:
-- Error toast: "Invalid Amount"
-- Transaction not submitted
+- Both buttons remain disabled
+- No toast notifications for invalid amount
 
-### Test Case 3.4: Insufficient Balance
-**Objective**: Handle insufficient ETH balance
+### Test Case 3.5: Insufficient PUSD Balance
+**Objective**: Handle insufficient PUSD balance for purchase
 **Steps**:
-1. Connect wallet with low balance
-2. Enter ETH amount higher than balance
-3. Click "Buy NPT Tokens"
+1. Connect wallet with low PUSD balance
+2. Enter PUSD amount higher than balance
+3. Verify "Buy NPT Tokens" button is disabled
+4. Attempt to approve PUSD (if button is enabled)
 
 **Expected Result**:
-- Error toast: "Insufficient Balance"
-- Transaction not submitted
+- "Buy NPT Tokens" button disabled
+- If approval attempted, Error toast: "Insufficient PUSD balance"
 
-### Test Case 3.5: Different Purchase Amounts
-**Objective**: Test various purchase amounts
+### Test Case 3.6: Insufficient PUSD Allowance
+**Objective**: Handle insufficient PUSD allowance for purchase
+**Steps**:
+1. Connect wallet with PUSD balance, but allowance < purchase amount
+2. Enter PUSD amount
+3. Verify "Approve PUSD" button is visible and enabled
+4. Verify "Buy NPT Tokens" button is disabled
+
+**Expected Result**:
+- "Approve PUSD" button enabled
+- "Buy NPT Tokens" button disabled
+- Successful approval makes "Buy NPT Tokens" enabled
+
+### Test Case 3.7: Different Purchase Amounts
+**Objective**: Test various purchase amounts with PUSD
 **Test Data**:
-- 0.001 ETH → 10 NPT
-- 0.01 ETH → 100 NPT
-- 0.1 ETH → 1,000 NPT
-- 1.0 ETH → 10,000 NPT
+- 1 PUSD → 200 NPT
+- 10 PUSD → 2,000 NPT
+- 100 PUSD → 20,000 NPT
 
 **Steps**:
-1. Connect wallet
-2. For each amount, enter value and verify calculation
-3. Complete purchase
+1. Connect wallet with sufficient PUSD balance
+2. Approve sufficient PUSD for each amount (or one large approval)
+3. For each amount, enter value and verify calculation
+4. Complete purchase
 
 **Expected Result**:
 - All calculations correct
@@ -259,34 +289,32 @@
 ### Test Case 6.1: NPT Calculation
 **Objective**: Verify NPT amount calculation
 **Test Data**:
-- 0.001 ETH → 10 NPT
-- 0.01 ETH → 100 NPT
-- 0.1 ETH → 1,000 NPT
-- 1.0 ETH → 10,000 NPT
+- 1 PUSD → 200 NPT
+- 10 PUSD → 2,000 NPT
+- 100 PUSD → 20,000 NPT
 
 **Steps**:
-1. Enter each ETH amount
+1. Enter each PUSD amount
 2. Verify calculated NPT amount
 
 **Expected Result**:
 - All calculations are accurate
-- Formula: NPT = ETH / 0.0001
+- Formula: NPT = PUSD_Amount * 200
 
 ### Test Case 6.2: Naira Conversion
 **Objective**: Verify Naira value calculation
 **Test Data**:
-- 0.001 ETH → ₦2,500
-- 0.01 ETH → ₦25,000
-- 0.1 ETH → ₦250,000
-- 1.0 ETH → ₦2,500,000
+- 1 PUSD → ₦1,500
+- 10 PUSD → ₦15,000
+- 100 PUSD → ₦150,000
 
 **Steps**:
-1. Enter each ETH amount
+1. Enter each PUSD amount
 2. Verify Naira value display
 
 **Expected Result**:
 - All conversions accurate
-- Formula: Naira = ETH × 2,500,000
+- Formula: Naira = PUSD_Amount × 1,500
 
 ### Test Case 6.3: Progress Calculation
 **Objective**: Verify progress bar calculations
@@ -355,14 +383,14 @@
 ## 8. INTEGRATION TESTS
 
 ### Test Case 8.1: End-to-End Purchase Flow
-**Objective**: Complete purchase flow from start to finish
+**Objective**: Complete purchase flow from start to finish with PUSD
 **Steps**:
 1. Open app
 2. Connect wallet
-3. Enter 0.01 ETH
-4. Verify 100 NPT calculation
-5. Click buy
-6. Confirm in MetaMask
+3. Enter 10 PUSD
+4. Verify 2,000 NPT calculation
+5. Click "Approve PUSD" and confirm in MetaMask
+6. Click "Buy NPT Tokens" and confirm in MetaMask
 7. Wait for confirmation
 8. Verify balances updated
 9. Check transaction on Etherscan
@@ -373,14 +401,15 @@
 - Transaction visible on blockchain
 
 ### Test Case 8.2: Multiple Purchases
-**Objective**: Make multiple purchases in sequence
+**Objective**: Make multiple purchases in sequence with PUSD
 **Steps**:
 1. Connect wallet
-2. Make purchase 1: 0.01 ETH
-3. Wait for confirmation
-4. Make purchase 2: 0.005 ETH
-5. Wait for confirmation
-6. Verify both transactions in history
+2. Approve sufficient PUSD for multiple purchases (e.g., 100 PUSD)
+3. Make purchase 1: 10 PUSD
+4. Wait for confirmation
+5. Make purchase 2: 5 PUSD
+6. Wait for confirmation
+7. Verify both transactions in history
 
 **Expected Result**:
 - Both purchases successful
@@ -463,8 +492,9 @@
 ### Pre-Test Setup
 - [ ] MetaMask installed and configured
 - [ ] Sepolia testnet added
-- [ ] Sepolia ETH obtained
-- [ ] Contracts deployed and verified
+- [ ] Sepolia ETH obtained (for gas fees)
+- [ ] PUSD Test Tokens obtained (for purchases)
+- [ ] Contracts deployed and verified (NPT, IDO, PUSD)
 - [ ] App running on localhost
 
 ### Test Execution
@@ -533,16 +563,17 @@
 ## Test Data Summary
 
 ### Contract Addresses
-- NexaPayToken: `0x0a5385Af31C7b9deEeAb6cEabacC3e1244920246`
-- NPT_IDO: `0xBD0Df2f72d89a5F3E5E96A9902eFc207aA730090`
+- NexaPayToken: `0x806D505157a9858a8b533b4d6715e7a19C62C1a4`
+- NPT_IDO: `0x47D6d06d34aA875e01d556c29f98e9E6841d9779`
+- PUSD_TOKEN: `0x1099937F106CD6E182E318391C3E45044FDFd126`
 
 ### Test Values
-- ETH amounts: 0.001, 0.01, 0.1, 1.0
-- Expected NPT: 10, 100, 1,000, 10,000
-- Expected Naira: ₦2,500, ₦25,000, ₦250,000, ₦2,500,000
+- PUSD amounts: 1, 10, 100
+- Expected NPT: 200, 2,000, 20,000 (based on 1 PUSD = 200 NPT)
+- Expected Naira: ₦1,500, ₦15,000, ₦150,000 (based on 1 PUSD = ₦1500)
 
 ### Network Details
 - Network: Sepolia Testnet
 - Chain ID: 11155111
-- RPC: https://sepolia.infura.io/v3/YOUR_KEY
-- Explorer: https://sepolia.etherscan.io/
+- RPC: `https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d`
+- Explorer: `https://sepolia.etherscan.io/`
