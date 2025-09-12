@@ -18,18 +18,30 @@ const NEXAPAY_TOKEN_ABI = [
   "event Approval(address indexed owner, address indexed spender, uint256 value)"
 ];
 
+const PUSD_TOKEN_ABI = [
+  // ERC20 standard functions for PUSD
+  "function name() view returns (string)",
+  "function symbol() view returns (string)",
+  "function decimals() view returns (uint8)",
+  "function balanceOf(address owner) view returns (uint256)",
+  "function allowance(address owner, address spender) view returns (uint256)",
+  "function approve(address spender, uint256 amount) returns (bool)",
+  "event Transfer(address indexed from, address indexed to, uint224 value)",
+  "event Approval(address indexed owner, address indexed spender, uint224 value)"
+];
+
 const NPT_IDO_ABI = [
   // IDO contract functions (simplified to match your current NPT_IDO.sol)
   "function tokensForSale() view returns (uint256)",
   "function tokensSold() view returns (uint256)",
-  "function tokensPerEth() view returns (uint256)",
-  "function tokensPurchased(address) view returns (uint256)", // Public mapping getter
-  "function tokensRemaining() view returns (uint256)", // Public view function
-  "function buy() payable",
-  "function withdrawFunds(address, uint256) external",
+  "function tokensPerPUSD() view returns (uint256)", // Changed from tokensPerEth
+  "function tokensPurchased(address) view returns (uint256)",
+  "function tokensRemaining() view returns (uint256)",
+  "function buy(uint256 pusdAmount) external", // Changed to accept pusdAmount
+  "function withdrawFunds(address, uint256) external", // Changed to pusdAmount
   "function recoverUnsoldTokens(address) external",
-  "event Bought(address indexed buyer, uint256 weiAmount, uint256 tokensAmount)",
-  "event Withdraw(address indexed to, uint256 amountWei)",
+  "event Bought(address indexed buyer, uint256 pusdAmount, uint256 tokensAmount)", // Changed to pusdAmount
+  "event Withdraw(address indexed to, uint256 pusdAmount)", // Changed to pusdAmount
   "event UnsoldTokensRecovered(address indexed to, uint256 amount)"
 ];
 
@@ -45,7 +57,8 @@ interface Web3ContextType {
   // Contract instances
   tokenContract: Contract | null;
   idoContract: Contract | null;
-  
+  pusdContract: Contract | null; // PUSD Contract instance
+
   // Contract data
   tokenData: {
     name: string;
@@ -54,19 +67,28 @@ interface Web3ContextType {
     totalSupply: string;
     userBalance: string;
   } | null;
-  
+
+  pusdData: {
+    name: string;
+    symbol: string;
+    decimals: number;
+    userBalance: string;
+    allowance: string; // Allowance for IDO contract
+  } | null;
+
   idoData: {
     tokensForSale: string;
     tokensSold: string;
-    tokensPerEth: string;
+    tokensPerPUSD: string; // Changed from tokensPerEth
     userTokensPurchased: string;
     tokensRemaining: string;
   } | null;
-  
+
   // Methods
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  buyTokens: (ethAmount: string) => Promise<string>;
+  buyTokens: (pusdAmount: string) => Promise<string>; // Changed to accept pusdAmount
+  approvePUSD: (amount: string) => Promise<string>; // New: Approve PUSD for IDO
   refreshData: () => Promise<void>;
   
   // Error handling
@@ -95,7 +117,9 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [tokenContract, setTokenContract] = useState<Contract | null>(null);
   const [idoContract, setIdoContract] = useState<Contract | null>(null);
+  const [pusdContract, setPusdContract] = useState<Contract | null>(null); // Initialize pusdContract
   const [tokenData, setTokenData] = useState(null);
+  const [pusdData, setPusdData] = useState(null); // Initialize pusdData
   const [idoData, setIdoData] = useState(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -115,20 +139,19 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         // Initialize contracts
         const tokenContract = new Contract(CONTRACT_ADDRESSES.NEXAPAY_TOKEN, NEXAPAY_TOKEN_ABI, provider);
         const idoContract = new Contract(CONTRACT_ADDRESSES.NPT_IDO, NPT_IDO_ABI, provider);
+        const pusdContract = new Contract(CONTRACT_ADDRESSES.PUSD_TOKEN, PUSD_TOKEN_ABI, provider); // Initialize pusdContract
         
         setTokenContract(tokenContract);
         setIdoContract(idoContract);
-
-        console.log("Web3Context - Initialized Token Contract Address:", CONTRACT_ADDRESSES.NEXAPAY_TOKEN);
-        console.log("Web3Context - Initialized IDO Contract Address:", CONTRACT_ADDRESSES.NPT_IDO);
-        console.log("Web3Context - Initialized RPC URL:", NETWORK_CONFIG.SEPOLIA.rpcUrls[0]);
+        setPusdContract(pusdContract); // Set pusdContract
 
         // Check if already connected
         const accounts = await ethereum.request({ method: 'eth_accounts' });
         if (accounts.length > 0) {
-          setAccount(accounts[0]);
+          const connectedAccount = accounts[0];
+          setAccount(connectedAccount);
           setIsConnected(true);
-          await refreshData();
+          await refreshData(provider, connectedAccount, tokenContract, idoContract, pusdContract);
         }
       } catch (err) {
         console.error('Error initializing Web3:', err);
@@ -157,9 +180,10 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         throw new Error('No accounts found');
       }
 
-      setAccount(accounts[0]);
+      const connectedAccount = accounts[0];
+      setAccount(connectedAccount);
       setIsConnected(true);
-      await refreshData();
+      await refreshData(provider, connectedAccount, tokenContract, idoContract, pusdContract);
     } catch (err: any) {
       console.error('Error connecting wallet:', err);
       setError(err.message || 'Failed to connect wallet');
@@ -172,21 +196,35 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setAccount(null);
     setIsConnected(false);
     setTokenData(null);
+    setPusdData(null); // Clear pusdData
     setIdoData(null);
     setError(null);
   };
 
-  const refreshData = async () => {
-    if (!provider || !account || !tokenContract || !idoContract) return;
+  const refreshData = async (
+    currentProvider?: BrowserProvider | null,
+    currentAccount?: string | null,
+    currentTokenContract?: Contract | null,
+    currentIdoContract?: Contract | null,
+    currentPusdContract?: Contract | null // Pass pusdContract
+  ) => {
+    // Use provided arguments or fall back to state
+    const activeProvider = currentProvider || provider;
+    const activeAccount = currentAccount || account;
+    const activeTokenContract = currentTokenContract || tokenContract;
+    const activeIdoContract = currentIdoContract || idoContract;
+    const activePusdContract = currentPusdContract || pusdContract; // Use activePusdContract
+
+    if (!activeProvider || !activeAccount || !activeTokenContract || !activeIdoContract || !activePusdContract) return;
 
     try {
       // Get token data
       const [name, symbol, decimals, totalSupply, userBalance] = await Promise.all([
-        tokenContract.name(),
-        tokenContract.symbol(),
-        tokenContract.decimals(),
-        tokenContract.totalSupply(),
-        tokenContract.balanceOf(account)
+        activeTokenContract.name(),
+        activeTokenContract.symbol(),
+        activeTokenContract.decimals(),
+        activeTokenContract.totalSupply(),
+        activeTokenContract.balanceOf(activeAccount)
       ]);
 
       setTokenData({
@@ -197,45 +235,69 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         userBalance: ethers.formatEther(userBalance)
       });
 
+      // Get PUSD data
+      const [pusdName, pusdSymbol, pusdDecimals, pusdBalance, pusdAllowance] = await Promise.all([
+        activePusdContract.name(),
+        activePusdContract.symbol(),
+        activePusdContract.decimals(),
+        activePusdContract.balanceOf(activeAccount),
+        activePusdContract.allowance(activeAccount, activeIdoContract?.address || '0x0000000000000000000000000000000000000000') // Assuming IDO contract is the spender
+      ]);
+
+      setPusdData({
+        name: pusdName,
+        symbol: pusdSymbol,
+        decimals: Number(pusdDecimals),
+        userBalance: ethers.formatEther(pusdBalance),
+        allowance: ethers.formatEther(pusdAllowance)
+      });
+
       // Get IDO data (simplified to match your current NPT_IDO.sol)
       const [
         tokensForSale,
         tokensSold,
-        tokensPerEth,
+        tokensPerPUSD,
         userTokensPurchased,
         tokensRemaining,
       ] = await Promise.all([
-        idoContract.tokensForSale(),
-        idoContract.tokensSold(),
-        idoContract.tokensPerEth(),
-        idoContract.tokensPurchased(account),
-        idoContract.tokensRemaining(),
+        activeIdoContract.tokensForSale(),
+        activeIdoContract.tokensSold(),
+        activeIdoContract.tokensPerPUSD(), // Changed to tokensPerPUSD
+        activeIdoContract.tokensPurchased(activeAccount),
+        activeIdoContract.tokensRemaining(),
       ]);
 
       setIdoData({
         tokensForSale: ethers.formatEther(tokensForSale),
         tokensSold: ethers.formatEther(tokensSold),
-        tokensPerEth: ethers.formatEther(tokensPerEth),
+        tokensPerPUSD: ethers.formatUnits(tokensPerPUSD, 18), // Explicitly format with 18 decimals
         userTokensPurchased: ethers.formatEther(userTokensPurchased),
         tokensRemaining: ethers.formatEther(tokensRemaining),
       });
-    } catch (err) {
-      console.error('Error refreshing data:', err);
-      setError('Failed to refresh contract data');
+
+    } catch (err: any) {
+      console.error('Error inside refreshData:', err);
+      setError(err.message || 'Failed to refresh contract data in refreshData');
     }
   };
 
-  const buyTokens = async (ethAmount: string): Promise<string> => {
-    if (!provider || !account || !idoContract) {
+  const buyTokens = async (pusdAmount: string): Promise<string> => {
+    if (!provider || !account || !idoContract || !pusdContract) {
       throw new Error('Web3 not initialized');
     }
 
     try {
       const signer = await provider.getSigner();
       const idoContractWithSigner = idoContract.connect(signer);
+      const pusdContractWithSigner = pusdContract.connect(signer);
       
+      // Approve PUSD for the IDO contract
+      const approveTx = await pusdContractWithSigner.approve(idoContractWithSigner.address, ethers.parseEther(pusdAmount));
+      await approveTx.wait();
+
+      // Buy tokens using the approved PUSD amount
       const tx = await idoContractWithSigner.buy({
-        value: ethers.parseEther(ethAmount)
+        value: ethers.parseEther(pusdAmount) // The buy function expects PUSD amount, not ETH
       });
 
       await tx.wait();
@@ -248,6 +310,25 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   };
 
+  const approvePUSD = async (amount: string): Promise<string> => {
+    if (!provider || !account || !pusdContract) {
+      throw new Error('Web3 not initialized');
+    }
+
+    try {
+      const signer = await provider.getSigner();
+      const pusdContractWithSigner = pusdContract.connect(signer);
+
+      const tx = await pusdContractWithSigner.approve(idoContract?.address || '0x0000000000000000000000000000000000000000', ethers.parseEther(amount));
+      await tx.wait();
+      await refreshData();
+      return tx.hash;
+    } catch (err: any) {
+      console.error('Error approving PUSD:', err);
+      throw new Error(err.message || 'Failed to approve PUSD');
+    }
+  };
+
   const clearError = () => setError(null);
 
   const value: Web3ContextType = {
@@ -257,11 +338,14 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     provider,
     tokenContract,
     idoContract,
+    pusdContract, // Add pusdContract to context value
     tokenData,
+    pusdData, // Add pusdData to context value
     idoData,
     connectWallet,
     disconnectWallet,
     buyTokens,
+    approvePUSD, // Add approvePUSD to context value
     refreshData,
     error,
     clearError

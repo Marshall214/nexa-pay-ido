@@ -6,61 +6,64 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NPT_IDO is ReentrancyGuard, Ownable(msg.sender) {
-    IERC20 public immutable token;
+    IERC20 public immutable token;   // Token being sold
+    IERC20 public immutable pusd;    // PUSD stablecoin used for payment
+
     uint256 public tokensForSale;
     uint256 public tokensSold;
-    uint256 public tokensPerEth;
+    uint256 public tokensPerPUSD; // how many project tokens per 1 PUSD
 
     mapping(address => uint256) public tokensPurchased;
 
-    event Bought(address indexed buyer, uint256 weiAmount, uint256 tokensAmount);
-    event Withdraw(address indexed to, uint256 amountWei);
+    event Bought(address indexed buyer, uint256 pusdAmount, uint256 tokensAmount);
+    event Withdraw(address indexed to, uint256 pusdAmount);
     event UnsoldTokensRecovered(address indexed to, uint256 amount);
 
     constructor(
         address tokenAddress,
+        address pusdAddress,
         uint256 _tokensForSale,
-        uint256 _tokensPerEth
+        uint256 _tokensPerPUSD
     ) {
         require(tokenAddress != address(0), "invalid token");
+        require(pusdAddress != address(0), "invalid PUSD");
         require(_tokensForSale > 0, "tokensForSale zero");
-        require(_tokensPerEth > 0, "tokensPerEth zero");
+        require(_tokensPerPUSD > 0, "tokensPerPUSD zero");
 
         token = IERC20(tokenAddress);
+        pusd = IERC20(pusdAddress);
         tokensForSale = _tokensForSale;
-        tokensPerEth = _tokensPerEth;
+        tokensPerPUSD = _tokensPerPUSD;
     }
 
-    receive() external payable {
-        buy();
-    }
+    // Buyer calls this after approving PUSD
+    function buy(uint256 pusdAmount) external nonReentrant {
+        require(pusdAmount > 0, "zero PUSD");
 
-    fallback() external payable {
-        buy();
-    }
-
-    function buy() public payable nonReentrant {
-        require(msg.value > 0, "zero ETH");
-
-        uint256 tokensAmount = (msg.value * tokensPerEth) / 1 ether;
+        uint256 tokensAmount = pusdAmount * tokensPerPUSD;
         require(tokensAmount > 0, "zero tokens to allocate");
         require(tokensSold + tokensAmount <= tokensForSale, "not enough tokens left");
+
+        // Transfer PUSD from buyer to contract
+        bool ok1 = pusd.transferFrom(msg.sender, address(this), pusdAmount);
+        require(ok1, "PUSD transfer failed");
+
+        // Send project tokens to buyer
+        bool ok2 = token.transfer(msg.sender, tokensAmount);
+        require(ok2, "token transfer failed");
 
         tokensPurchased[msg.sender] += tokensAmount;
         tokensSold += tokensAmount;
 
-        bool ok = token.transfer(msg.sender, tokensAmount);
-        require(ok, "token transfer failed");
-
-        emit Bought(msg.sender, msg.value, tokensAmount);
+        emit Bought(msg.sender, pusdAmount, tokensAmount);
     }
 
-    function withdrawFunds(address payable to, uint256 amountWei) external onlyOwner {
+    function withdrawFunds(address to, uint256 pusdAmount) external onlyOwner {
         require(to != address(0), "zero address");
-        require(amountWei <= address(this).balance, "insufficient balance");
-        (bool sent, ) = to.call{value: amountWei}("");
+        require(pusdAmount <= pusd.balanceOf(address(this)), "insufficient PUSD");
+        bool sent = pusd.transfer(to, pusdAmount);
         require(sent, "withdraw failed");
-        emit Withdraw(to, amountWei);
+        emit Withdraw(to, pusdAmount);
     }
 
     function recoverUnsoldTokens(address to) external onlyOwner {

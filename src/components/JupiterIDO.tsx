@@ -38,37 +38,45 @@ interface Transaction {
 const JupiterIDO = () => {
   const { toast } = useToast();
   const { 
-    isConnected, 
-    isConnecting, 
-    account, 
-    tokenData, 
-    idoData, 
-    connectWallet, 
-    buyTokens, 
-    error, 
-    clearError 
+    isConnected,
+    isConnecting,
+    account,
+    tokenData,
+    pusdData, // New: PUSD data
+    idoData,
+    connectWallet,
+    buyTokens,
+    approvePUSD, // New: Approve PUSD function
+    error,
+    clearError
   } = useWeb3();
 
-  const [ethAmount, setEthAmount] = useState("");
+  const [pusdAmount, setPusdAmount] = useState(""); // Changed from ethAmount
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isApproving, setIsApproving] = useState(false); // New: Approval loading state
 
   // Constants for display
   const targetNaira = 700000000; // ₦700M target
-  const ethToNairaRate = 2500000; // 1 ETH = ₦2.5M
+  const pusdToNairaRate = 1500; // 1 PUSD = ₦1500 (example rate, adjust as needed)
 
   // Calculate values from real data
   const totalSupply = tokenData ? parseFloat(tokenData.totalSupply) : 0;
   const soldTokens = idoData ? parseFloat(idoData.tokensSold) : 0;
-  const pricePerToken = idoData ? parseFloat(idoData.tokensPerEth) : 0;
+  const pricePerToken = idoData ? parseFloat(idoData.tokensPerPUSD) : 0; // Changed from tokensPerEth
   const userNPTBalance = tokenData ? parseFloat(tokenData.userBalance) : 0;
-  const raisedNaira = soldTokens * pricePerToken * ethToNairaRate;
+  const userPUSDBalance = pusdData ? parseFloat(pusdData.userBalance) : 0; // New: User PUSD balance
+  const idoAllowance = pusdData ? parseFloat(pusdData.allowance) : 0; // New: IDO allowance for PUSD
+  const raisedNaira = soldTokens * pricePerToken * pusdToNairaRate; // Changed to pusdToNairaRate
 
   const remainingTokens = totalSupply - soldTokens;
   const saleProgress = totalSupply > 0 ? (soldTokens / totalSupply) * 100 : 0;
   const fundraisingProgress = (raisedNaira / targetNaira) * 100;
-  const nptAmount = ethAmount && pricePerToken > 0 ? parseFloat(ethAmount) / pricePerToken : 0;
-  const ethAmountInNaira = ethAmount ? parseFloat(ethAmount) * ethToNairaRate : 0;
+  const nptAmount = pusdAmount && pricePerToken > 0 ? parseFloat(pusdAmount) * pricePerToken : 0; // Changed to pusdAmount
+  const pusdAmountInNaira = pusdAmount ? parseFloat(pusdAmount) * pusdToNairaRate : 0; // New: PUSD amount in Naira
+
+  // Check if approval is needed
+  const isApprovalNeeded = pusdAmount && parseFloat(pusdAmount) > 0 && userPUSDBalance >= parseFloat(pusdAmount) && idoAllowance < parseFloat(pusdAmount);
 
   // Handle Web3 errors
   useEffect(() => {
@@ -83,10 +91,10 @@ const JupiterIDO = () => {
   }, [error, toast, clearError]);
 
   const handleBuyTokens = async () => {
-    if (!ethAmount || parseFloat(ethAmount) <= 0) {
+    if (!pusdAmount || parseFloat(pusdAmount) <= 0) {
       toast({
         title: "Invalid Amount",
-        description: "Please enter a valid ETH amount",
+        description: "Please enter a valid PUSD amount",
         variant: "destructive",
       });
       return;
@@ -101,10 +109,29 @@ const JupiterIDO = () => {
       return;
     }
 
+    if (isApprovalNeeded) {
+      setIsApproving(true);
+      try {
+        await approvePUSD(pusdAmount);
+        toast({
+          title: "Approval Successful",
+          description: `Successfully approved ${pusdAmount} PUSD for the IDO.`,
+        });
+      } catch (error: any) {
+        toast({
+          title: "Approval Failed",
+          description: error.message || "Approval failed. Please try again.",
+          variant: "destructive",
+        });
+      } finally {
+        setIsApproving(false);
+      }
+    }
+
     const newTransaction: Transaction = {
       hash: `0x${Math.random().toString(16).substr(2, 8)}...${Math.random().toString(16).substr(2, 8)}`,
       status: 'pending',
-      ethAmount: parseFloat(ethAmount),
+      ethAmount: parseFloat(pusdAmount),
       nptAmount: nptAmount,
       timestamp: new Date(),
     };
@@ -113,7 +140,7 @@ const JupiterIDO = () => {
     setIsLoading(true);
 
     try {
-      const txHash = await buyTokens(ethAmount);
+      const txHash = await buyTokens(pusdAmount);
       
       setTransactions(prev => 
         prev.map(tx => 
@@ -123,7 +150,7 @@ const JupiterIDO = () => {
         )
       );
 
-      setEthAmount("");
+      setPusdAmount("");
       toast({
         title: "Purchase Successful!",
         description: `Successfully bought ${nptAmount.toLocaleString()} NPT tokens`,
@@ -285,7 +312,7 @@ const JupiterIDO = () => {
                   </div>
                   <span className="text-sm font-bold text-muted-foreground uppercase tracking-wide">Price</span>
                 </div>
-                <p className="text-2xl font-bold text-neon-cyan animate-neon-pulse">{pricePerToken} ETH</p>
+                <p className="text-2xl font-bold text-neon-cyan animate-neon-pulse">{pricePerToken} PUSD</p>
                 <p className="text-xs text-muted-foreground mt-1">per token</p>
               </CardContent>
             </Card>
@@ -344,7 +371,7 @@ const JupiterIDO = () => {
               </div>
             ) : (
               <div className="space-y-6">
-                {/* From Token */}
+                {/* From Token (PUSD) */}
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-neon-cyan uppercase tracking-wide">You pay</label>
                   <div className="relative">
@@ -357,37 +384,37 @@ const JupiterIDO = () => {
                           </div>
                         </div>
                         <div className="flex flex-col min-w-0">
-                          <span className="font-bold text-lg text-neon-blue">ETH</span>
-                          <span className="text-sm text-muted-foreground">Ethereum</span>
+                          <span className="font-bold text-lg text-neon-blue">PUSD</span>
+                          <span className="text-sm text-muted-foreground">PUSD</span>
                         </div>
                       </div>
                       <div className="flex flex-col items-end">
                         <Input
                           type="number"
                           placeholder="0.0"
-                          value={ethAmount}
-                          onChange={(e) => setEthAmount(e.target.value)}
+                          value={pusdAmount}
+                          onChange={(e) => setPusdAmount(e.target.value)}
                           className="input-cyber border-0 bg-transparent text-right text-2xl font-bold p-0 h-auto focus-visible:ring-0 text-foreground"
                           step="0.0001"
                           min="0"
-                          data-testid="eth-input"
+                          data-testid="pusd-input"
                         />
                         <span className="text-sm text-muted-foreground mt-2">
-                          Balance: {account ? "Loading..." : "0.0000"} ETH
+                          Balance: {userPUSDBalance.toLocaleString()} PUSD
                         </span>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Swap Arrow */}
+                {/* Swap Arrow - Now for PUSD/NPT */}
                 <div className="flex justify-center">
                   <div className="bg-neon-blue/20 rounded-full p-3 hover:bg-neon-cyan/30 transition-all duration-300 hover:scale-110 shadow-neon">
                     <ArrowDown className="w-5 h-5 text-neon-blue" />
                   </div>
                 </div>
 
-                {/* To Token */}
+                {/* To Token (NPT) */}
                 <div className="space-y-3">
                   <label className="text-sm font-bold text-neon-green uppercase tracking-wide">You receive</label>
                   <div className="relative">
@@ -419,17 +446,17 @@ const JupiterIDO = () => {
                 <Separator className="my-8 bg-neon-blue/20" />
 
                 {/* Transaction Info */}
-                {ethAmount && parseFloat(ethAmount) > 0 && (
+                {pusdAmount && parseFloat(pusdAmount) > 0 && (
                   <div className="bg-secondary/10 rounded-xl p-6 space-y-4 border border-neon-cyan/20 shadow-neon">
                     <h4 className="text-sm font-bold text-neon-cyan uppercase tracking-wide">Transaction Details</h4>
                     <div className="space-y-3">
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Exchange Rate</span>
-                        <span className="font-bold text-neon-blue">1 ETH = {pricePerToken > 0 ? (1 / pricePerToken).toLocaleString() : "0"} NPT</span>
+                        <span className="font-bold text-neon-blue">1 PUSD = {pricePerToken > 0 ? pricePerToken.toLocaleString() : "0"} NPT</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Value in Naira</span>
-                        <span className="font-bold text-neon-purple">₦{ethAmountInNaira.toLocaleString()}</span>
+                        <span className="font-bold text-neon-purple">₦{pusdAmountInNaira.toLocaleString()}</span>
                       </div>
                       <div className="flex justify-between items-center">
                         <span className="text-sm text-muted-foreground">Network Fee</span>
@@ -439,10 +466,49 @@ const JupiterIDO = () => {
                   </div>
                 )}
 
+                {/* Approve PUSD Button (conditional) */}
+                {isApprovalNeeded && (
+                  <Button 
+                    onClick={async () => {
+                      setIsApproving(true);
+                      try {
+                        await approvePUSD(pusdAmount);
+                        toast({
+                          title: "Approval Successful",
+                          description: `Successfully approved ${pusdAmount} PUSD for the IDO.`,
+                        });
+                      } catch (error: any) {
+                        toast({
+                          title: "Approval Failed",
+                          description: error.message || "Approval failed. Please try again.",
+                          variant: "destructive",
+                        });
+                      } finally {
+                        setIsApproving(false);
+                      }
+                    }}
+                    disabled={isApproving || isLoading || !pusdAmount || parseFloat(pusdAmount) <= 0}
+                    className="w-full h-14 text-lg font-bold btn-cyber bg-gradient-to-r from-neon-purple to-neon-pink hover:scale-105 active:scale-95 mb-4"
+                    data-testid="approve-pusd-button"
+                  >
+                    {isApproving ? (
+                      <div className="flex items-center">
+                        <Clock className="w-5 h-5 mr-3 animate-spin" />
+                        Approving PUSD...
+                      </div>
+                    ) : (
+                      <div className="flex items-center">
+                        <Zap className="w-5 h-5 mr-3" />
+                        Approve {pusdAmount} PUSD
+                      </div>
+                    )}
+                  </Button>
+                )}
+
                 {/* Buy Button */}
                 <Button 
                   onClick={handleBuyTokens}
-                  disabled={isLoading || !ethAmount || parseFloat(ethAmount) <= 0}
+                  disabled={isLoading || isApproving || !pusdAmount || parseFloat(pusdAmount) <= 0 || (userPUSDBalance < parseFloat(pusdAmount)) || (isApprovalNeeded && idoAllowance < parseFloat(pusdAmount))}
                   className="w-full h-14 text-lg font-bold btn-cyber hover:scale-105 active:scale-95"
                   data-testid="buy-tokens-button"
                 >
@@ -484,7 +550,7 @@ const JupiterIDO = () => {
                         {tx.status === 'success' && <div className="absolute -top-1 -right-1 w-3 h-3 bg-neon-green rounded-full animate-pulse-slow shadow-neon"></div>}
                       </div>
                       <div>
-                        <p className="text-sm font-bold text-foreground">{tx.ethAmount} ETH → {tx.nptAmount.toFixed(0)} NPT</p>
+                        <p className="text-sm font-bold text-foreground">{tx.ethAmount} PUSD → {tx.nptAmount.toFixed(0)} NPT</p>
                         <p className="text-xs text-muted-foreground font-mono">{tx.hash}</p>
                         <p className="text-xs text-muted-foreground">{tx.timestamp.toLocaleTimeString()}</p>
                       </div>
