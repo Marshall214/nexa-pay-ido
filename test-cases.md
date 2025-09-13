@@ -1,11 +1,13 @@
 # NexaPay IDO Platform - End-to-End Test Cases
 
+---
+
 ## Test Environment Setup
 
 ### Prerequisites
 - MetaMask wallet installed and configured
 - Sepolia testnet added to MetaMask
-- Sepolia ETH for testing (for gas fees)
+- Sepolia ETH for gas fees (only for transaction gas, not for token purchase)
 - PUSD Test Tokens for purchasing NPT
 - Contract addresses deployed on Sepolia:
   - NexaPayToken: `0x806D505157a9858a8b533b4d6715e7a19C62C1a4`
@@ -30,7 +32,7 @@
 3. Verify no wallet address is displayed
 4. Verify purchase interface shows "Connect Your Wallet" message
 
-**Expected Result**: 
+**Expected Result**:
 - App loads successfully
 - Connect Wallet button is enabled
 - No wallet information displayed
@@ -71,6 +73,29 @@
 **Expected Result**:
 - Error message: "MetaMask not detected"
 - Instructions to install MetaMask
+
+### Test Case 1.5: Successful Wallet Disconnection
+**Objective**: Disconnect MetaMask wallet successfully and verify UI changes.
+**Steps**:
+1. Connect wallet.
+2. Click the "Power" icon (disconnect button) in the header.
+3. Observe the UI.
+
+**Expected Result**:
+- Wallet disconnects successfully (frontend state cleared).
+- "Connect Wallet" button reappears.
+- Wallet address, ETH balance, and PUSD balance are no longer displayed.
+- Purchase interface reverts to "Connect Your Wallet" message.
+- Toast notification appears: "Wallet Disconnected. To completely disconnect, please go to your MetaMask extension -> Connected sites and remove this DApp."
+
+### Test Case 1.6: Disconnect Button Tooltip
+**Objective**: Verify the tooltip for the disconnect button.
+**Steps**:
+1. Connect wallet.
+2. Hover over the "Power" icon (disconnect button) in the header.
+
+**Expected Result**:
+- A tooltip appears with the text "Disconnect Wallet".
 
 ---
 
@@ -492,7 +517,7 @@
 ### Pre-Test Setup
 - [ ] MetaMask installed and configured
 - [ ] Sepolia testnet added
-- [ ] Sepolia ETH obtained (for gas fees)
+- [ ] Sepolia ETH for gas fees (only for transaction gas, not for token purchase)
 - [ ] PUSD Test Tokens obtained (for purchases)
 - [ ] Contracts deployed and verified (NPT, IDO, PUSD)
 - [ ] App running on localhost
@@ -542,15 +567,15 @@
 ## Success Criteria
 
 ### Critical Paths (Must Work)
-- [ ] Wallet connection
-- [ ] Token purchase
-- [ ] Data display
+- [ ] Wallet connection and disconnection
+- [ ] Token purchase (PUSD approval and NPT acquisition)
+- [ ] Data display (all contract data and balances)
 - [ ] Transaction confirmation
 
 ### Important Features (Should Work)
 - [ ] Multiple purchases
 - [ ] Transaction history
-- [ ] Error handling
+- [ ] Error handling (user-friendly messages and recovery options)
 - [ ] Responsive design
 
 ### Nice to Have (Could Work)
@@ -577,3 +602,15 @@
 - Chain ID: 11155111
 - RPC: `https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d`
 - Explorer: `https://sepolia.etherscan.io/`
+
+---
+
+## 📞 Conclusion
+
+The NexaPay IDO Platform represents a comprehensive solution for conducting secure and transparent token sales. By combining cutting-edge Web3 technology with an intuitive user interface, the platform addresses key pain points in the DeFi space while providing a professional and engaging user experience.
+
+The detailed requirements outlined in this PRD ensure that the platform meets both technical excellence and user experience standards, positioning it for successful adoption and long-term sustainability in the competitive DeFi marketplace.
+
+---
+
+*This document is version controlled and should be updated with any changes to requirements or scope. All stakeholders should review and approve changes before implementation.*

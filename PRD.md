@@ -4,17 +4,17 @@
 - **Product Name**: NexaPay IDO Platform
 - **Version**: 1.0.0
 - **Date**: September 11, 2025
-- **Author**: AI Assistant
+- **Author**: Emmanuel Onuora
 - **Status**: Final
 
 ---
 
 ## 🎯 Executive Summary
 
-The NexaPay IDO Platform is a comprehensive decentralized token sale application that enables users to participate in Initial DEX Offerings (IDOs) for the NexaPay Token (NPT). Built with React, TypeScript, and Web3 technologies, the platform provides a seamless interface for wallet connection, token purchase, and real-time transaction tracking in a cyberpunk-themed design.
+The NexaPay IDO Platform is a comprehensive decentralized token sale application that enables users to participate in Initial DEX Offerings (IDOs) for the NexaPay Token (NPT) using PUSD stablecoin. Built with React, TypeScript, and Web3 technologies, the platform provides a seamless interface for wallet connection, token purchase, and real-time transaction tracking in a cyberpunk-themed design.
 
 ### Key Objectives
-- Enable secure and transparent token purchases using Ethereum
+- Enable secure and transparent token purchases using PUSD stablecoin
 - Provide real-time feedback and transaction status updates
 - Implement comprehensive testing and validation features
 - Deliver an engaging, professional user experience
@@ -30,7 +30,7 @@ To create the most user-friendly and secure platform for participating in NexaPa
 ### Core Features
 1. **Wallet Integration**: MetaMask connectivity with automatic network detection
 2. **Real-time Data**: Live contract data synchronization and updates
-3. **Token Purchase**: Secure ETH-to-NPT conversion with instant feedback
+3. **Token Purchase**: Secure PUSD-to-NPT conversion with instant feedback and PUSD approval
 4. **Transaction History**: Complete purchase tracking with status indicators
 5. **Progress Monitoring**: Visual fundraising progress and sale statistics
 6. **Responsive Design**: Optimized experience across all devices
@@ -40,7 +40,7 @@ To create the most user-friendly and secure platform for participating in NexaPa
 - **User Experience**: 95%+ successful wallet connections
 - **Transaction Success Rate**: 98%+ successful token purchases
 - **Performance**: <3 second page load times
-- **Fundraising Target**: ₦700M in total contributions
+- **Fundraising Target**: ₦700M total contributions
 - **User Retention**: 80%+ return rate for multiple purchases
 
 ---
@@ -109,34 +109,27 @@ To create the most user-friendly and secure platform for participating in NexaPa
 6. User can access purchase interface
 
 ### Epic 2: Token Purchase Process
-**As an investor**, I want to buy NPT tokens with ETH so that I can participate in the IDO.
+**As an investor**, I want to buy NPT tokens with PUSD so that I can participate in the IDO.
 
 **Acceptance Criteria**:
-- [ ] ETH amount input with validation
-- [ ] Real-time NPT amount calculation
-- [ ] Minimum/maximum contribution limits
+- [ ] PUSD amount input with validation
+- [ ] PUSD approval process for the IDO contract
+- [ ] Real-time price calculation (NPT per PUSD)
+- [ ] Sufficient NPT tokens available for sale
+- [ ] Gas estimation display
 - [ ] Transaction confirmation flow
-- [ ] Success/failure status updates
+- [ ] User receives purchased NPT tokens
 
 **User Journey**:
 1. User connects wallet
-2. Enters ETH amount
-3. Reviews NPT amount and pricing
-4. Confirms transaction in MetaMask
-5. Receives transaction confirmation
-6. Views updated balance and history
+2. Enters PUSD amount
+3. Clicks "Approve PUSD" and confirms transaction in MetaMask
+4. Reviews NPT amount and price
+5. Clicks "Buy NPT Tokens" and confirms transaction in MetaMask
+6. Receives transaction confirmation
+7. Views updated balances and history
 
-### Epic 3: Real-time Data Monitoring
-**As a user**, I want to see live sale progress so that I can make informed investment decisions.
-
-**Acceptance Criteria**:
-- [ ] Live token sale statistics
-- [ ] Fundraising progress visualization
-- [ ] Personal contribution tracking
-- [ ] Transaction history with status
-- [ ] Real-time balance updates
-
-### Epic 4: Error Handling & Recovery
+### Epic 3: Error Handling & Feedback
 **As a user**, I want clear error messages and recovery options when transactions fail.
 
 **Acceptance Criteria**:
@@ -162,36 +155,35 @@ To create the most user-friendly and secure platform for participating in NexaPa
 - **Web3 Library**: Ethers.js v6
 - **Wallet Support**: MetaMask
 - **Network**: Ethereum Sepolia testnet
-- **Smart Contracts**: Solidity ^0.8.17
-- **Contract Framework**: OpenZeppelin
+- **Smart Contracts**: Solidity 0.8.17
+- **Contract Framework**: OpenZeppelin Contracts
 
-### Smart Contract Specifications
+#### Smart Contract Specifications
 
-#### NexaPayToken (ERC20)
+##### NexaPayToken (ERC20)
 ```solidity
 - Name: "NexaPay Token"
 - Symbol: "NPT"
 - Decimals: 18
 - Total Supply: Configurable initial supply
-- Features: Standard ERC20 functionality
+- Features: Standard ERC20 functions
 ```
 
-#### NPT_IDO Contract
+##### NPT_IDO Contract
 ```solidity
 - Token Sale Management
-- Whitelist functionality (optional)
+- Whitelisting functionality (optional)
 - Contribution limits (min/max)
 - Pause/unpause functionality
 - Fund withdrawal controls
 - Token recovery mechanisms
+- Accepts PUSD for token purchases
+- Exchange rate: tokensPerPUSD (e.g., 200 NPT per 1 PUSD)
 ```
 
-### API Specifications
-
-#### Web3Context Interface
+##### Web3Context Interface
 ```typescript
 interface Web3ContextType {
-  // Connection state
   isConnected: boolean;
   isConnecting: boolean;
   account: string | null;
@@ -200,129 +192,130 @@ interface Web3ContextType {
   // Contract instances
   tokenContract: Contract | null;
   idoContract: Contract | null;
-  
+  pusdContract: Contract | null; // PUSD Contract instance
+
   // Contract data
   tokenData: TokenData | null;
+  pusdData: PUSDData | null; // Added PUSD Data
   idoData: IDOData | null;
-  
+  userEthBalance: string | null; // User's native ETH balance
+
   // Methods
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  buyTokens: (ethAmount: string) => Promise<string>;
+  buyTokens: (pusdAmount: string) => Promise<string>; // Updated to PUSD amount
+  approvePUSD: (amount: string) => Promise<string>; // New: Approve PUSD
   refreshData: () => Promise<void>;
+  clearError: () => void;
 }
 ```
 
----
-
-## 🎨 UI/UX Requirements
-
-### Design System
+### UI/UX Design
 
 #### Color Palette (Cyberpunk Theme)
 ```css
---neon-cyan: hsl(180, 100%, 50%);
---neon-blue: hsl(210, 100%, 60%);
---neon-purple: hsl(270, 100%, 70%);
+--neon-blue: hsl(220, 80%, 60%);
+--neon-cyan: hsl(180, 100%, 70%);
+--neon-green: hsl(120, 80%, 60%);
+--neon-purple: hsl(270, 80%, 70%);
 --neon-pink: hsl(330, 100%, 70%);
---neon-green: hsl(120, 100%, 50%);
 --background: hsl(222, 84%, 5%);
---foreground: hsl(210, 40%, 98%);
---card: hsl(222, 84%, 8%);
---border: hsl(217, 32%, 17%);
+--card-background: hsl(217, 32%, 15%);
+--border-color: hsl(217, 32%, 25%);
 ```
 
 #### Typography Hierarchy
-- **H1**: 3rem (48px) - Page titles
-- **H2**: 2.25rem (36px) - Section headers
-- **H3**: 1.875rem (30px) - Component titles
-- **Body**: 1rem (16px) - Regular text
-- **Small**: 0.875rem (14px) - Secondary text
+- **H1**: Bold, 48px-64px (gradient text) - Main titles
+- **H2**: Bold, 36px-48px (neon accent) - Section titles
+- **H3**: Bold, 24px-30px (muted foreground) - Component titles
+- **Body**: 16px-18px (text-foreground) - General content
+- **Small**: 12px-14px (muted-foreground) - Helper text
 
-### Component Specifications
-
-#### Header Component
-- Fixed positioning with backdrop blur
-- Logo with animated accent dot
-- Wallet connection status
-- Settings access
-- Live badge indicator
-
-#### Token Purchase Interface
-- ETH input with real-time validation
-- NPT amount display with auto-calculation
-- Purchase button with loading states
-- Transaction preview modal
-- Error state handling
-
-#### Progress Visualization
-- Fundraising progress bar
-- Sale completion percentage
-- Target vs. raised amounts
-- Real-time updates every 30 seconds
+#### Key Components
+- **Header**: Wallet connection status, live balance indicator (ETH & PUSD)
+- **Token Purchase Interface**:
+  - PUSD input with real-time validation
+  - NPT amount display with auto-calculation
+  - Purchase button with loading states
+  - PUSD approval button (conditional)
+  - Transaction preview modal
+  - Error notifications and handling
+- **Progress Visualization**:
+  - Dynamic fundraising progress bar
+  - Percentage completion display
+  - Tokens sold and raised amounts
+  - Real-time data updates (every 30 seconds)
 
 ### Responsive Design Requirements
 - **Mobile (320px - 768px)**: Single column layout, touch-optimized
 - **Tablet (768px - 1024px)**: Two-column layout, medium spacing
-- **Desktop (1024px+)**: Multi-column layout, optimal spacing
+- **Desktop (1024px +)**: Multi-column layout, optimal spacing
 - **Breakpoint Strategy**: Mobile-first with progressive enhancement
 
 ---
 
-## 🔧 Functional Requirements
-
-### Core Functionality
+## ⚙️ Functional Requirements
 
 #### FR-001: Wallet Connection
-**Description**: Secure MetaMask wallet integration
+**Description**: Secure MetaMask wallet integration, allowing users to connect and disconnect.
 **Priority**: Critical
 **Requirements**:
 - Automatic MetaMask detection
-- Network validation
-- Account switching support
+- Network validation (Sepolia testnet)
+- Account address display (truncated format)
 - Connection status persistence
+- Disconnect functionality
 
 #### FR-002: Token Purchase
-**Description**: ETH to NPT conversion process
+**Description**: PUSD to NPT conversion process with prior approval.
 **Priority**: Critical
 **Requirements**:
-- Input validation (numeric, decimal places)
-- Real-time price calculation
+- PUSD token input with validation
+- Real-time price calculation (NPT per PUSD)
+- PUSD allowance check and approval flow
 - Gas estimation display
 - Transaction confirmation flow
+- User receives purchased NPT tokens
 
-#### FR-003: Data Synchronization
-**Description**: Real-time contract data updates
+#### FR-003: Real-time Data Display
+**Description**: Real-time contract data updates.
 **Priority**: High
 **Requirements**:
-- Automatic data refresh every 30 seconds
-- Manual refresh capability
+- NPT token data (name, symbol, decimals, total supply, user balance)
+- PUSD token data (name, symbol, decimals, user balance, allowance)
+- IDO contract data (tokens for sale, tokens sold, price, user tokens purchased, tokens remaining)
+- User's native ETH balance
 - Offline state handling
 - Data consistency validation
 
-#### FR-004: Transaction Tracking
-**Description**: Complete transaction lifecycle management
+#### FR-004: Transaction Management
+**Description**: Complete transaction lifecycle management.
 **Priority**: High
 **Requirements**:
-- Transaction status monitoring
-- Hash storage and display
+- PUSD token input validation
+- Real-time price calculation (NPT per PUSD)
+- PUSD allowance check and approval flow
 - Success/failure notifications
 - Transaction history persistence
 
-#### FR-005: Progress Monitoring
-**Description**: Visual fundraising progress tracking
+#### FR-005: Fundraising Progress
+**Description**: Visual fundraising progress tracking.
 **Priority**: Medium
 **Requirements**:
-- Progress bar with percentage
-- Target vs. actual amounts
+- PUSD token input with validation
+- Real-time price calculation (NPT per PUSD)
+- PUSD allowance check and approval flow
 - Real-time updates
-- Multiple currency display (ETH/Naira)
 
-### Security Requirements
+---
+
+## 🔒 Security Requirements
 
 #### SR-001: Input Validation
-- Numeric input sanitization
-- Decimal place limits
+- PUSD token input with validation
+- Real-time price calculation (NPT per PUSD)
+- PUSD allowance check and approval flow
+- Decimal place handling
 - Minimum/maximum value enforcement
 - XSS prevention
 
@@ -336,7 +329,7 @@ interface Web3ContextType {
 - No personal data storage
 - Wallet address anonymization
 - Transaction data encryption
-- Secure local storage usage
+- Minimal local storage usage
 
 ---
 
@@ -373,6 +366,14 @@ interface Web3ContextType {
 2. **Pre-push**: Integration tests
 3. **Nightly**: E2E test suite
 4. **Deployment**: Full regression testing
+
+### Test Coverage
+- **Wallet Connection**: MetaMask integration
+- **Token Purchase**: PUSD to NPT conversion with approval
+- **Data Loading**: Contract data fetching
+- **UI Components**: Responsive design
+- **Error Handling**: User feedback
+- **Transaction History**: Status tracking
 
 ---
 
@@ -428,18 +429,18 @@ interface Web3ContextType {
 ## 📋 Acceptance Criteria
 
 ### Minimum Viable Product (MVP)
-- [ ] Secure wallet connection
-- [ ] Token purchase functionality
-- [ ] Real-time progress display
-- [ ] Transaction history
-- [ ] Mobile-responsive design
-- [ ] Error handling and recovery
+- [x] Secure wallet connection
+- [x] Token purchase functionality
+- [x] Real-time progress display
+- [x] Transaction history
+- [x] Mobile responsive design
+- [x] Error handling and recovery
 
 ### Beta Release
 - [ ] Advanced transaction features
 - [ ] Enhanced UI/UX improvements
 - [ ] Comprehensive testing suite
-- [ ] Performance optimization
+- [ ] Performance optimizations
 - [ ] Security audit completion
 
 ### Production Release
@@ -457,30 +458,25 @@ interface Web3ContextType {
 - **MetaMask**: Browser extension requirement
 - **Ethereum Network**: Sepolia testnet availability
 - **Smart Contracts**: Deployed and verified
+  - `NEXAPAY_TOKEN`
+  - `NPT_IDO`
+  - `PUSD_TOKEN`
 - **Node.js**: Version 18+ requirement
 
 ### Business Constraints
 - **Regulatory Compliance**: KYC/AML considerations
-- **Geographic Restrictions**: Country-specific limitations
-- **Token Economics**: Fixed supply and pricing
-- **Timeline**: IDO duration constraints
-
-### External Dependencies
-- **Infura/Alchemy**: RPC endpoint availability
-- **Etherscan**: Transaction verification
-- **CDN Services**: Asset delivery optimization
+- **Geographical Restrictions**: Country-specific limitations
+- **Token Economics**: Fixed supply and PUSD-based pricing
+- **Timeframe**: IDO duration constraints
 
 ---
 
 ## 📈 Success Metrics & KPIs
 
-### User Engagement Metrics
+### Product Metrics
 - **Daily Active Users (DAU)**
 - **Session Duration**
 - **Conversion Rate (Visitors to Purchasers)**
-- **Return Visitor Rate**
-
-### Technical Metrics
 - **Page Load Performance**
 - **Transaction Success Rate**
 - **Error Rate**
@@ -544,7 +540,7 @@ interface Web3ContextType {
 - **Low Participation**: Marketing and community building required
 - **Regulatory Changes**: Compliance monitoring and updates
 - **Competition**: Differentiating from similar platforms
-- **Market Volatility**: ETH price fluctuations affecting participation
+- **Market Volatility**: PUSD stability risks and general market fluctuations affecting participation
 
 ### Mitigation Strategies
 - Comprehensive testing and auditing

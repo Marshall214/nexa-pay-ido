@@ -5,12 +5,12 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { Separator } from "@/components/ui/separator";
-import { 
-  Wallet, 
-  ArrowDown, 
-  ChevronDown, 
-  Settings, 
-  ExternalLink, 
+import {
+  Wallet,
+  ArrowDown,
+  ChevronDown,
+  Settings,
+  ExternalLink,
   Copy,
   CheckCircle,
   Clock,
@@ -19,13 +19,20 @@ import {
   TrendingUp,
   Users,
   Target,
-  DollarSign
+  DollarSign,
+  Power // Import Power icon
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useWeb3 } from "@/contexts/Web3Context";
 import { formatAddress } from "@/config/contracts";
 import nexaPayLogo from "@/assets/nexapay-logo.png";
 import ethLogo from "@/assets/eth-logo.png";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"; // Import Tooltip components
 
 interface Transaction {
   hash: string;
@@ -37,18 +44,20 @@ interface Transaction {
 
 const JupiterIDO = () => {
   const { toast } = useToast();
-  const { 
+  const {
     isConnected,
     isConnecting,
     account,
     tokenData,
-    pusdData, // New: PUSD data
+    pusdData,
     idoData,
+    userEthBalance, // New: User's ETH balance
     connectWallet,
     buyTokens,
-    approvePUSD, // New: Approve PUSD function
+    approvePUSD,
     error,
-    clearError
+    clearError,
+    disconnectWallet
   } = useWeb3();
 
   const [pusdAmount, setPusdAmount] = useState(""); // Changed from ethAmount
@@ -77,6 +86,14 @@ const JupiterIDO = () => {
 
   // Check if approval is needed
   const isApprovalNeeded = pusdAmount && parseFloat(pusdAmount) > 0 && userPUSDBalance >= parseFloat(pusdAmount) && idoAllowance < parseFloat(pusdAmount);
+
+  console.log("--- JupiterIDO Debug ---");
+  console.log("Entered PUSD Amount:", pusdAmount);
+  console.log("User PUSD Balance:", userPUSDBalance);
+  console.log("IDO PUSD Allowance:", idoAllowance);
+  console.log("Is Approval Needed:", isApprovalNeeded);
+  console.log("Buy Button Disabled:", isLoading || isApproving || !pusdAmount || parseFloat(pusdAmount) <= 0 || (userPUSDBalance < parseFloat(pusdAmount)) || (isApprovalNeeded && idoAllowance < parseFloat(pusdAmount)));
+  console.log("------------------------");
 
   // Handle Web3 errors
   useEffect(() => {
@@ -141,10 +158,10 @@ const JupiterIDO = () => {
 
     try {
       const txHash = await buyTokens(pusdAmount);
-      
-      setTransactions(prev => 
-        prev.map(tx => 
-          tx.hash === newTransaction.hash 
+
+      setTransactions(prev =>
+        prev.map(tx =>
+          tx.hash === newTransaction.hash
             ? { ...tx, hash: txHash, status: 'success' }
             : tx
         )
@@ -156,9 +173,9 @@ const JupiterIDO = () => {
         description: `Successfully bought ${nptAmount.toLocaleString()} NPT tokens`,
       });
     } catch (error: any) {
-      setTransactions(prev => 
-        prev.map(tx => 
-          tx.hash === newTransaction.hash 
+      setTransactions(prev =>
+        prev.map(tx =>
+          tx.hash === newTransaction.hash
             ? { ...tx, status: 'error' }
             : tx
         )
@@ -215,14 +232,44 @@ const JupiterIDO = () => {
                 <Settings className="w-4 h-4" />
               </Button>
               {isConnected ? (
-                <Button variant="outline" className="font-mono text-sm hover-neon bg-neon-blue/10 border-neon-blue/30 text-neon-blue">
-                  {formatAddress(account || '')}
-                </Button>
+                <div className="flex items-center space-x-2">
+                  {userEthBalance !== null && (
+                    <Button variant="outline" className="font-mono text-sm hover-neon bg-neon-purple/10 border-neon-purple/30 text-neon-purple">
+                      {parseFloat(userEthBalance).toFixed(4)} ETH
+                    </Button>
+                  )}
+                  {pusdData?.userBalance !== undefined && (
+                    <Button variant="outline" className="font-mono text-sm hover-neon bg-neon-green/10 border-neon-green/30 text-neon-green">
+                      {parseFloat(pusdData.userBalance).toFixed(2)} PUSD
+                    </Button>
+                  )}
+                  <Button variant="outline" className="font-mono text-sm hover-neon bg-neon-blue/10 border-neon-blue/30 text-neon-blue">
+                    {formatAddress(account || '')}
+                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          onClick={disconnectWallet}
+                          variant="destructive"
+                          size="sm"
+                          className="btn-cyber-danger"
+                          data-testid="header-disconnect-wallet"
+                        >
+                          <Power className="w-4 h-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Disconnect Wallet</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               ) : (
-                <Button 
-                  onClick={connectWallet} 
-                  disabled={isConnecting} 
-                  className="btn-cyber" 
+                <Button
+                  onClick={connectWallet}
+                  disabled={isConnecting}
+                  className="btn-cyber"
                   data-testid="header-connect-wallet"
                 >
                   <Wallet className="w-4 h-4 mr-2" />
@@ -249,7 +296,7 @@ const JupiterIDO = () => {
           <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto leading-relaxed">
             Join the future of decentralized payments. Purchase NPT tokens during our exclusive IDO and be part of the next generation of financial technology.
           </p>
-          
+
           {/* Fundraising Target */}
           <div className="mb-8">
             <Card className="card-cyber-glow hover-lift">
@@ -359,8 +406,8 @@ const JupiterIDO = () => {
                 <p className="text-muted-foreground mb-8 max-w-md mx-auto leading-relaxed">
                   Connect your wallet to start purchasing NPT tokens and join the future of decentralized payments
                 </p>
-                <Button 
-                  onClick={connectWallet} 
+                <Button
+                  onClick={connectWallet}
                   disabled={isConnecting}
                   className="btn-cyber text-lg px-8 py-4 min-w-[240px]"
                   data-testid="connect-wallet-button"
@@ -468,7 +515,7 @@ const JupiterIDO = () => {
 
                 {/* Approve PUSD Button (conditional) */}
                 {isApprovalNeeded && (
-                  <Button 
+                  <Button
                     onClick={async () => {
                       setIsApproving(true);
                       try {
@@ -506,7 +553,7 @@ const JupiterIDO = () => {
                 )}
 
                 {/* Buy Button */}
-                <Button 
+                <Button
                   onClick={handleBuyTokens}
                   disabled={isLoading || isApproving || !pusdAmount || parseFloat(pusdAmount) <= 0 || (userPUSDBalance < parseFloat(pusdAmount)) || (isApprovalNeeded && idoAllowance < parseFloat(pusdAmount))}
                   className="w-full h-14 text-lg font-bold btn-cyber hover:scale-105 active:scale-95"

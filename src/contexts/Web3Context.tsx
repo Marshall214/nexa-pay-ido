@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { ethers, BrowserProvider, Contract } from 'ethers';
 import detectEthereumProvider from '@metamask/detect-provider';
+import { useToast } from "@/hooks/use-toast";
 
 // Contract ABIs - we'll add these after you provide the deployed addresses
 const NEXAPAY_TOKEN_ABI = [
@@ -84,6 +85,8 @@ interface Web3ContextType {
     tokensRemaining: string;
   } | null;
 
+  userEthBalance: string | null; // New: User's native ETH balance
+
   // Methods
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
@@ -121,7 +124,9 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [tokenData, setTokenData] = useState(null);
   const [pusdData, setPusdData] = useState(null); // Initialize pusdData
   const [idoData, setIdoData] = useState(null);
+  const [userEthBalance, setUserEthBalance] = useState<string | null>(null); // Initialize userEthBalance
   const [error, setError] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Initialize provider and contracts
   useEffect(() => {
@@ -198,7 +203,13 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setTokenData(null);
     setPusdData(null); // Clear pusdData
     setIdoData(null);
+    setUserEthBalance(null); // Clear userEthBalance
     setError(null);
+    toast({
+      title: "Wallet Disconnected",
+      description: "To completely disconnect, please go to your MetaMask extension -> Connected sites and remove this DApp.",
+      duration: 5000, // Display for 5 seconds
+    });
   };
 
   const refreshData = async (
@@ -275,6 +286,14 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         tokensRemaining: ethers.formatEther(tokensRemaining),
       });
 
+      // Get user's native ETH balance
+      if (activeProvider && activeAccount) {
+        const balance = await activeProvider.getBalance(activeAccount);
+        setUserEthBalance(ethers.formatEther(balance));
+      } else {
+        setUserEthBalance(null);
+      }
+
     } catch (err: any) {
       console.error('Error inside refreshData:', err);
       setError(err.message || 'Failed to refresh contract data in refreshData');
@@ -342,6 +361,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     tokenData,
     pusdData, // Add pusdData to context value
     idoData,
+    userEthBalance, // Add userEthBalance to context value
     connectWallet,
     disconnectWallet,
     buyTokens,
