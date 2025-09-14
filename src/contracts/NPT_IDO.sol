@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
@@ -7,65 +7,59 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NPT_IDO is ReentrancyGuard, Ownable(msg.sender) {
     IERC20 public immutable token;   // Token being sold
-    IERC20 public immutable pusd;    // PUSD stablecoin used for payment
 
-    uint256 public tokensForSale;
-    uint256 public tokensSold;
-    uint256 public tokensPerPUSD; // how many project tokens per 1 PUSD
+    uint256 public tokensForSale;    // total NPT allocated for IDO
+    uint256 public tokensSold;       // how many sold so far
+    uint256 public tokensPerETH;     // how many tokens per 1 ETH
 
     mapping(address => uint256) public tokensPurchased;
 
-    event Bought(address indexed buyer, uint256 pusdAmount, uint256 tokensAmount);
-    event Withdraw(address indexed to, uint256 pusdAmount);
+    event Bought(address indexed buyer, uint256 ethAmount, uint256 tokensAmount);
+    event Withdraw(address indexed to, uint256 ethAmount);
     event UnsoldTokensRecovered(address indexed to, uint256 amount);
 
     constructor(
         address tokenAddress,
-        address pusdAddress,
         uint256 _tokensForSale,
-        uint256 _tokensPerPUSD
+        uint256 _tokensPerETH
     ) {
         require(tokenAddress != address(0), "invalid token");
-        require(pusdAddress != address(0), "invalid PUSD");
         require(_tokensForSale > 0, "tokensForSale zero");
-        require(_tokensPerPUSD > 0, "tokensPerPUSD zero");
+        require(_tokensPerETH > 0, "tokensPerETH zero");
 
         token = IERC20(tokenAddress);
-        pusd = IERC20(pusdAddress);
         tokensForSale = _tokensForSale;
-        tokensPerPUSD = _tokensPerPUSD;
+        tokensPerETH = _tokensPerETH;
     }
 
-    // Buyer calls this after approving PUSD
-    function buy(uint256 pusdAmount) external nonReentrant {
-        require(pusdAmount > 0, "zero PUSD");
+    // Buyer sends ETH directly to buy NPT
+    function buy() external payable nonReentrant {
+        require(msg.value > 0, "zero ETH sent");
 
-        uint256 tokensAmount = pusdAmount * tokensPerPUSD;
+        uint256 tokensAmount = (msg.value * tokensPerETH) / (10**18);
         require(tokensAmount > 0, "zero tokens to allocate");
         require(tokensSold + tokensAmount <= tokensForSale, "not enough tokens left");
 
-        // Transfer PUSD from buyer to contract
-        bool ok1 = pusd.transferFrom(msg.sender, address(this), pusdAmount);
-        require(ok1, "PUSD transfer failed");
-
         // Send project tokens to buyer
-        bool ok2 = token.transfer(msg.sender, tokensAmount);
-        require(ok2, "token transfer failed");
+        bool ok = token.transfer(msg.sender, tokensAmount);
+        require(ok, "token transfer failed");
 
         tokensPurchased[msg.sender] += tokensAmount;
         tokensSold += tokensAmount;
 
-        emit Bought(msg.sender, pusdAmount, tokensAmount);
+        emit Bought(msg.sender, msg.value, tokensAmount);
     }
 
-    function withdrawFunds(address to, uint256 pusdAmount) external onlyOwner {
+    // Owner withdraws raised ETH
+    function withdrawFunds(address payable to, uint256 amount) external onlyOwner {
         require(to != address(0), "zero address");
-        require(pusdAmount <= pusd.balanceOf(address(this)), "insufficient PUSD");
-        bool sent = pusd.transfer(to, pusdAmount);
+        require(amount <= address(this).balance, "insufficient ETH");
+        (bool sent, ) = to.call{value: amount}("");
         require(sent, "withdraw failed");
-        emit Withdraw(to, pusdAmount);
+        emit Withdraw(to, amount);
     }
 
+    // Recover leftover unsold NPT tokens
     function recoverUnsoldTokens(address to) external onlyOwner {
         uint256 contractBalance = token.balanceOf(address(this));
         if (contractBalance > 0) {

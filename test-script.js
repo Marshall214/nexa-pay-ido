@@ -53,10 +53,10 @@ class IDOTestSuite {
     // Wait for calculation
     await new Promise(resolve => setTimeout(resolve, 1000));
 
-    // Check if NPT amount is calculated (should be 100)
-    const nptDisplay = document.querySelector('span:contains("100")');
+    // Check if NPT amount is calculated (should be 8.57 NPT for 0.01 ETH, since 1 ETH = 857 NPT)
+    const nptDisplay = document.querySelector('span:contains("8.57")');
     if (!nptDisplay) {
-      throw new Error('NPT calculation not working - expected 100 NPT for 0.01 ETH');
+      throw new Error('NPT calculation not working - expected 8.57 NPT for 0.01 ETH');
     }
   }
 
@@ -65,8 +65,9 @@ class IDOTestSuite {
     const elements = [
       { selector: '[data-testid="main-title"]', text: 'NexaPay Token Sale' },
       { selector: '[data-testid="header-connect-wallet"], [data-testid="connect-wallet-button"]', text: 'Connect Wallet' },
-      { selector: '[data-testid="eth-input"]', text: 'ETH input' },
-      { selector: '[data-testid="buy-tokens-button"]', text: 'Buy button' }
+      { selector: '[data-testid="eth-input"]', text: 'ETH input' }, // Changed from pusd-input
+      { selector: '[data-testid="buy-tokens-button"]', text: 'Buy button' },
+      { selector: '[data-testid="header-disconnect-wallet"]', text: 'Disconnect button' } // Added disconnect button
     ];
 
     for (const element of elements) {
@@ -109,7 +110,7 @@ class IDOTestSuite {
 
   async testErrorHandling() {
     // Test invalid input
-    const ethInput = document.querySelector('input[type="number"]');
+    const ethInput = document.querySelector('[data-testid="eth-input"]'); // Target ETH input
     if (ethInput) {
       ethInput.value = '-0.01';
       ethInput.dispatchEvent(new Event('input', { bubbles: true }));

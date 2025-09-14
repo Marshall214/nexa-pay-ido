@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract NexaPayToken is ERC20, Ownable {
-    constructor(uint256 initialSupply) ERC20("NexaPay Token", "NPT") Ownable(msg.sender) {
-        _mint(msg.sender, initialSupply * 10 ** decimals());
+    constructor() ERC20("NexaPay Token", "NPT") Ownable(msg.sender) {
+        // Mint 1 billion NPT (with 18 decimals) to deployer
+        _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
 }

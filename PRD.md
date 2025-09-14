@@ -11,10 +11,10 @@
 
 ## 🎯 Executive Summary
 
-The NexaPay IDO Platform is a comprehensive decentralized token sale application that enables users to participate in Initial DEX Offerings (IDOs) for the NexaPay Token (NPT) using PUSD stablecoin. Built with React, TypeScript, and Web3 technologies, the platform provides a seamless interface for wallet connection, token purchase, and real-time transaction tracking in a cyberpunk-themed design.
+The NexaPay IDO Platform is a comprehensive decentralized token sale application that enables users to participate in Initial DEX Offerings (IDOs) for the NexaPay Token (NPT) using Sepolia ETH. Built with React, TypeScript, and Web3 technologies, the platform provides a seamless interface for wallet connection, token purchase, and real-time transaction tracking in a cyberpunk-themed design.
 
 ### Key Objectives
-- Enable secure and transparent token purchases using PUSD stablecoin
+- Enable secure and transparent token purchases using Sepolia ETH
 - Provide real-time feedback and transaction status updates
 - Implement comprehensive testing and validation features
 - Deliver an engaging, professional user experience
@@ -30,7 +30,7 @@ To create the most user-friendly and secure platform for participating in NexaPa
 ### Core Features
 1. **Wallet Integration**: MetaMask connectivity with automatic network detection
 2. **Real-time Data**: Live contract data synchronization and updates
-3. **Token Purchase**: Secure PUSD-to-NPT conversion with instant feedback and PUSD approval
+3. **Token Purchase**: Secure ETH-to-NPT conversion with instant feedback
 4. **Transaction History**: Complete purchase tracking with status indicators
 5. **Progress Monitoring**: Visual fundraising progress and sale statistics
 6. **Responsive Design**: Optimized experience across all devices
@@ -109,12 +109,11 @@ To create the most user-friendly and secure platform for participating in NexaPa
 6. User can access purchase interface
 
 ### Epic 2: Token Purchase Process
-**As an investor**, I want to buy NPT tokens with PUSD so that I can participate in the IDO.
+**As an investor**, I want to buy NPT tokens with Sepolia ETH so that I can participate in the IDO.
 
 **Acceptance Criteria**:
-- [ ] PUSD amount input with validation
-- [ ] PUSD approval process for the IDO contract
-- [ ] Real-time price calculation (NPT per PUSD)
+- [ ] ETH amount input with validation
+- [ ] Real-time price calculation (NPT per ETH)
 - [ ] Sufficient NPT tokens available for sale
 - [ ] Gas estimation display
 - [ ] Transaction confirmation flow
@@ -122,12 +121,11 @@ To create the most user-friendly and secure platform for participating in NexaPa
 
 **User Journey**:
 1. User connects wallet
-2. Enters PUSD amount
-3. Clicks "Approve PUSD" and confirms transaction in MetaMask
-4. Reviews NPT amount and price
-5. Clicks "Buy NPT Tokens" and confirms transaction in MetaMask
-6. Receives transaction confirmation
-7. Views updated balances and history
+2. Enters ETH amount
+3. Reviews NPT amount and price
+4. Clicks "Buy NPT Tokens" and confirms transaction in MetaMask
+5. Receives transaction confirmation
+6. Views updated balances and history
 
 ### Epic 3: Error Handling & Feedback
 **As a user**, I want clear error messages and recovery options when transactions fail.
@@ -165,7 +163,7 @@ To create the most user-friendly and secure platform for participating in NexaPa
 - Name: "NexaPay Token"
 - Symbol: "NPT"
 - Decimals: 18
-- Total Supply: Configurable initial supply
+- Total Supply: 1,000,000,000 NPT (1 Billion)
 - Features: Standard ERC20 functions
 ```
 
@@ -175,10 +173,10 @@ To create the most user-friendly and secure platform for participating in NexaPa
 - Whitelisting functionality (optional)
 - Contribution limits (min/max)
 - Pause/unpause functionality
-- Fund withdrawal controls
+- Fund withdrawal controls (ETH)
 - Token recovery mechanisms
-- Accepts PUSD for token purchases
-- Exchange rate: tokensPerPUSD (e.g., 200 NPT per 1 PUSD)
+- Accepts native ETH for token purchases
+- Exchange rate: tokensPerETH (e.g., 857 NPT per 1 ETH)
 ```
 
 ##### Web3Context Interface
@@ -192,21 +190,18 @@ interface Web3ContextType {
   // Contract instances
   tokenContract: Contract | null;
   idoContract: Contract | null;
-  pusdContract: Contract | null; // PUSD Contract instance
 
   // Contract data
   tokenData: TokenData | null;
-  pusdData: PUSDData | null; // Added PUSD Data
   idoData: IDOData | null;
   userEthBalance: string | null; // User's native ETH balance
 
   // Methods
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  buyTokens: (pusdAmount: string) => Promise<string>; // Updated to PUSD amount
-  approvePUSD: (amount: string) => Promise<string>; // New: Approve PUSD
-  refreshData: () => Promise<void>;
-  clearError: () => void;
+  buyTokens: (ethAmount: string) => Promise<string>; // Updated to ETH amount
+  refreshData(): Promise<void>;
+  clearError(): void;
 }
 ```
 
@@ -232,12 +227,11 @@ interface Web3ContextType {
 - **Small**: 12px-14px (muted-foreground) - Helper text
 
 #### Key Components
-- **Header**: Wallet connection status, live balance indicator (ETH & PUSD)
+- **Header**: Wallet connection status, live balance indicator (ETH)
 - **Token Purchase Interface**:
-  - PUSD input with real-time validation
+  - ETH input with real-time validation
   - NPT amount display with auto-calculation
   - Purchase button with loading states
-  - PUSD approval button (conditional)
   - Transaction preview modal
   - Error notifications and handling
 - **Progress Visualization**:
@@ -267,12 +261,11 @@ interface Web3ContextType {
 - Disconnect functionality
 
 #### FR-002: Token Purchase
-**Description**: PUSD to NPT conversion process with prior approval.
+**Description**: ETH to NPT conversion process.
 **Priority**: Critical
 **Requirements**:
-- PUSD token input with validation
-- Real-time price calculation (NPT per PUSD)
-- PUSD allowance check and approval flow
+- ETH token input with validation
+- Real-time price calculation (NPT per ETH)
 - Gas estimation display
 - Transaction confirmation flow
 - User receives purchased NPT tokens
@@ -282,19 +275,15 @@ interface Web3ContextType {
 **Priority**: High
 **Requirements**:
 - NPT token data (name, symbol, decimals, total supply, user balance)
-- PUSD token data (name, symbol, decimals, user balance, allowance)
 - IDO contract data (tokens for sale, tokens sold, price, user tokens purchased, tokens remaining)
 - User's native ETH balance
-- Offline state handling
-- Data consistency validation
 
 #### FR-004: Transaction Management
 **Description**: Complete transaction lifecycle management.
 **Priority**: High
 **Requirements**:
-- PUSD token input validation
-- Real-time price calculation (NPT per PUSD)
-- PUSD allowance check and approval flow
+- ETH token input validation
+- Real-time price calculation (NPT per ETH)
 - Success/failure notifications
 - Transaction history persistence
 
@@ -302,9 +291,8 @@ interface Web3ContextType {
 **Description**: Visual fundraising progress tracking.
 **Priority**: Medium
 **Requirements**:
-- PUSD token input with validation
-- Real-time price calculation (NPT per PUSD)
-- PUSD allowance check and approval flow
+- ETH token input with validation
+- Real-time price calculation (NPT per ETH)
 - Real-time updates
 
 ---
@@ -312,9 +300,8 @@ interface Web3ContextType {
 ## 🔒 Security Requirements
 
 #### SR-001: Input Validation
-- PUSD token input with validation
-- Real-time price calculation (NPT per PUSD)
-- PUSD allowance check and approval flow
+- ETH token input with validation
+- Real-time price calculation (NPT per ETH)
 - Decimal place handling
 - Minimum/maximum value enforcement
 - XSS prevention
@@ -369,7 +356,7 @@ interface Web3ContextType {
 
 ### Test Coverage
 - **Wallet Connection**: MetaMask integration
-- **Token Purchase**: PUSD to NPT conversion with approval
+- **Token Purchase**: ETH to NPT conversion
 - **Data Loading**: Contract data fetching
 - **UI Components**: Responsive design
 - **Error Handling**: User feedback
@@ -460,7 +447,6 @@ interface Web3ContextType {
 - **Smart Contracts**: Deployed and verified
   - `NEXAPAY_TOKEN`
   - `NPT_IDO`
-  - `PUSD_TOKEN`
 - **Node.js**: Version 18+ requirement
 
 ### Business Constraints
@@ -540,7 +526,7 @@ interface Web3ContextType {
 - **Low Participation**: Marketing and community building required
 - **Regulatory Changes**: Compliance monitoring and updates
 - **Competition**: Differentiating from similar platforms
-- **Market Volatility**: PUSD stability risks and general market fluctuations affecting participation
+- **Market Volatility**: General market fluctuations affecting participation
 
 ### Mitigation Strategies
 - Comprehensive testing and auditing

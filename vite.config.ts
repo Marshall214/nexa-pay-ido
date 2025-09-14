@@ -9,7 +9,7 @@ export default defineConfig(({ mode }) => ({
     host: "::",
     port: 8080,
   },
-  envDir: "./src", // Add this line
+  envDir: "./src",
   plugins: [
     react(),
     mode === 'development' &&
@@ -19,5 +19,11 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/tests/setupTests.ts',
+    css: false, // Disable CSS processing for tests
   },
 }));

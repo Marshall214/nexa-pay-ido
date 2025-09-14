@@ -5,45 +5,676 @@ import { useToast } from "@/hooks/use-toast";
 
 // Contract ABIs - we'll add these after you provide the deployed addresses
 const NEXAPAY_TOKEN_ABI = [
-  // ERC20 standard functions
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-  "function decimals() view returns (uint8)",
-  "function totalSupply() view returns (uint256)",
-  "function balanceOf(address owner) view returns (uint256)",
-  "function transfer(address to, uint256 amount) returns (bool)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function approve(address spender, uint256 amount) returns (bool)",
-  "function transferFrom(address from, address to, uint256 amount) returns (bool)",
-  "event Transfer(address indexed from, address indexed to, uint256 value)",
-  "event Approval(address indexed owner, address indexed spender, uint256 value)"
-];
-
-const PUSD_TOKEN_ABI = [
-  // ERC20 standard functions for PUSD
-  "function name() view returns (string)",
-  "function symbol() view returns (string)",
-  "function decimals() view returns (uint8)",
-  "function balanceOf(address owner) view returns (uint256)",
-  "function allowance(address owner, address spender) view returns (uint256)",
-  "function approve(address spender, uint256 amount) returns (bool)",
-  "event Transfer(address indexed from, address indexed to, uint224 value)",
-  "event Approval(address indexed owner, address indexed spender, uint224 value)"
+  {
+    "inputs": [],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "allowance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientAllowance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "balance",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "needed",
+        "type": "uint256"
+      }
+    ],
+    "name": "ERC20InsufficientBalance",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "approver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidApprover",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "receiver",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidReceiver",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "sender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSender",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "ERC20InvalidSpender",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Approval",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "Transfer",
+    "type": "event"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      }
+    ],
+    "name": "allowance",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "spender",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "approve",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "balanceOf",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "decimals",
+    "outputs": [
+      {
+        "internalType": "uint8",
+        "name": "",
+        "type": "uint8"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "name",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "symbol",
+    "outputs": [
+      {
+        "internalType": "string",
+        "name": "",
+        "type": "string"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "totalSupply",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transfer",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "from",
+        "type": "address"
+      },
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "value",
+        "type": "uint256"
+      }
+    ],
+    "name": "transferFrom",
+    "outputs": [
+      {
+        "internalType": "bool",
+        "name": "",
+        "type": "bool"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
 ];
 
 const NPT_IDO_ABI = [
-  // IDO contract functions (simplified to match your current NPT_IDO.sol)
-  "function tokensForSale() view returns (uint256)",
-  "function tokensSold() view returns (uint256)",
-  "function tokensPerPUSD() view returns (uint256)", // Changed from tokensPerEth
-  "function tokensPurchased(address) view returns (uint256)",
-  "function tokensRemaining() view returns (uint256)",
-  "function buy(uint256 pusdAmount) external", // Changed to accept pusdAmount
-  "function withdrawFunds(address, uint256) external", // Changed to pusdAmount
-  "function recoverUnsoldTokens(address) external",
-  "event Bought(address indexed buyer, uint256 pusdAmount, uint256 tokensAmount)", // Changed to pusdAmount
-  "event Withdraw(address indexed to, uint256 pusdAmount)", // Changed to pusdAmount
-  "event UnsoldTokensRecovered(address indexed to, uint256 amount)"
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "tokenAddress",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_tokensForSale",
+        "type": "uint256"
+      },
+      {
+        "internalType": "uint256",
+        "name": "_tokensPerETH",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "nonpayable",
+    "type": "constructor"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "owner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableInvalidOwner",
+    "type": "error"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "account",
+        "type": "address"
+      }
+    ],
+    "name": "OwnableUnauthorizedAccount",
+    "type": "error"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "buyer",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "ethAmount",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "tokensAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "Bought",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "previousOwner",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "OwnershipTransferred",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "UnsoldTokensRecovered",
+    "type": "event"
+  },
+  {
+    "anonymous": false,
+    "inputs": [
+      {
+        "indexed": true,
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "internalType": "uint256",
+        "name": "ethAmount",
+        "type": "uint256"
+      }
+    ],
+    "name": "Withdraw",
+    "type": "event"
+  },
+  {
+    "inputs": [],
+    "name": "buy",
+    "outputs": [],
+    "stateMutability": "payable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "owner",
+    "outputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "to",
+        "type": "address"
+      }
+    ],
+    "name": "recoverUnsoldTokens",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "renounceOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "token",
+    "outputs": [
+      {
+        "internalType": "contract IERC20",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokensForSale",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokensPerETH",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "",
+        "type": "address"
+      }
+    ],
+    "name": "tokensPurchased",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokensRemaining",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "tokensSold",
+    "outputs": [
+      {
+        "internalType": "uint256",
+        "name": "",
+        "type": "uint256"
+      }
+    ],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address",
+        "name": "newOwner",
+        "type": "address"
+      }
+    ],
+    "name": "transferOwnership",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [
+      {
+        "internalType": "address payable",
+        "name": "to",
+        "type": "address"
+      },
+      {
+        "internalType": "uint256",
+        "name": "amount",
+        "type": "uint256"
+      }
+    ],
+    "name": "withdrawFunds",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  }
 ];
 
 import { CONTRACT_ADDRESSES, NETWORK_CONFIG } from '../config/contracts';
@@ -58,8 +689,8 @@ interface Web3ContextType {
   // Contract instances
   tokenContract: Contract | null;
   idoContract: Contract | null;
-  pusdContract: Contract | null; // PUSD Contract instance
-
+  // pusdContract: Contract | null; // PUSD Contract instance
+  
   // Contract data
   tokenData: {
     name: string;
@@ -69,29 +700,29 @@ interface Web3ContextType {
     userBalance: string;
   } | null;
 
-  pusdData: {
-    name: string;
-    symbol: string;
-    decimals: number;
-    userBalance: string;
-    allowance: string; // Allowance for IDO contract
-  } | null;
-
+  // pusdData: {
+  //   name: string;
+  //   symbol: string;
+  //   decimals: number;
+  //   userBalance: string;
+  //   allowance: string; // Allowance for IDO contract
+  // } | null;
+  
   idoData: {
     tokensForSale: string;
     tokensSold: string;
-    tokensPerPUSD: string; // Changed from tokensPerEth
+    tokensPerEth: string; // Changed from tokensPerPUSD
     userTokensPurchased: string;
     tokensRemaining: string;
   } | null;
 
   userEthBalance: string | null; // New: User's native ETH balance
-
+  
   // Methods
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
-  buyTokens: (pusdAmount: string) => Promise<string>; // Changed to accept pusdAmount
-  approvePUSD: (amount: string) => Promise<string>; // New: Approve PUSD for IDO
+  buyTokens: (ethAmount: string) => Promise<string>; // Changed to accept ethAmount
+  // approvePUSD: (amount: string) => Promise<string>; // New: Approve PUSD for IDO
   refreshData: () => Promise<void>;
   
   // Error handling
@@ -99,7 +730,7 @@ interface Web3ContextType {
   clearError: () => void;
 }
 
-const Web3Context = createContext<Web3ContextType | undefined>(undefined);
+export const Web3Context = createContext<Web3ContextType | undefined>(undefined);
 
 export const useWeb3 = () => {
   const context = useContext(Web3Context);
@@ -120,9 +751,9 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const [tokenContract, setTokenContract] = useState<Contract | null>(null);
   const [idoContract, setIdoContract] = useState<Contract | null>(null);
-  const [pusdContract, setPusdContract] = useState<Contract | null>(null); // Initialize pusdContract
+  // const [pusdContract, setPusdContract] = useState<Contract | null>(null); // Initialize pusdContract
   const [tokenData, setTokenData] = useState(null);
-  const [pusdData, setPusdData] = useState(null); // Initialize pusdData
+  // const [pusdData, setPusdData] = useState(null); // Initialize pusdData
   const [idoData, setIdoData] = useState(null);
   const [userEthBalance, setUserEthBalance] = useState<string | null>(null); // Initialize userEthBalance
   const [error, setError] = useState<string | null>(null);
@@ -144,11 +775,11 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         // Initialize contracts
         const tokenContract = new Contract(CONTRACT_ADDRESSES.NEXAPAY_TOKEN, NEXAPAY_TOKEN_ABI, provider);
         const idoContract = new Contract(CONTRACT_ADDRESSES.NPT_IDO, NPT_IDO_ABI, provider);
-        const pusdContract = new Contract(CONTRACT_ADDRESSES.PUSD_TOKEN, PUSD_TOKEN_ABI, provider); // Initialize pusdContract
+        // const pusdContract = new Contract(CONTRACT_ADDRESSES.PUSD_TOKEN, PUSD_TOKEN_ABI, provider); // Initialize pusdContract
         
         setTokenContract(tokenContract);
         setIdoContract(idoContract);
-        setPusdContract(pusdContract); // Set pusdContract
+        // setPusdContract(pusdContract); // Set pusdContract
 
         // Check if already connected
         const accounts = await ethereum.request({ method: 'eth_accounts' });
@@ -156,7 +787,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
           const connectedAccount = accounts[0];
           setAccount(connectedAccount);
           setIsConnected(true);
-          await refreshData(provider, connectedAccount, tokenContract, idoContract, pusdContract);
+          await refreshData(provider, connectedAccount, tokenContract, idoContract /*, pusdContract*/);
         }
       } catch (err) {
         console.error('Error initializing Web3:', err);
@@ -188,7 +819,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
       const connectedAccount = accounts[0];
       setAccount(connectedAccount);
       setIsConnected(true);
-      await refreshData(provider, connectedAccount, tokenContract, idoContract, pusdContract);
+      await refreshData(provider, connectedAccount, tokenContract, idoContract /*, pusdContract*/);
     } catch (err: any) {
       console.error('Error connecting wallet:', err);
       setError(err.message || 'Failed to connect wallet');
@@ -201,7 +832,7 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     setAccount(null);
     setIsConnected(false);
     setTokenData(null);
-    setPusdData(null); // Clear pusdData
+    // setPusdData(null); // Clear pusdData
     setIdoData(null);
     setUserEthBalance(null); // Clear userEthBalance
     setError(null);
@@ -217,19 +848,18 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     currentAccount?: string | null,
     currentTokenContract?: Contract | null,
     currentIdoContract?: Contract | null,
-    currentPusdContract?: Contract | null // Pass pusdContract
+    // currentPusdContract?: Contract | null // Pass pusdContract
   ) => {
     // Use provided arguments or fall back to state
     const activeProvider = currentProvider || provider;
     const activeAccount = currentAccount || account;
     const activeTokenContract = currentTokenContract || tokenContract;
     const activeIdoContract = currentIdoContract || idoContract;
-    const activePusdContract = currentPusdContract || pusdContract; // Use activePusdContract
 
-    if (!activeProvider || !activeAccount || !activeTokenContract || !activeIdoContract || !activePusdContract) return;
+    if (!activeProvider || !activeAccount || !activeTokenContract || !activeIdoContract) return;
 
     try {
-      // Get token data
+      // --- Get Token Data ---
       const [name, symbol, decimals, totalSupply, userBalance] = await Promise.all([
         activeTokenContract.name(),
         activeTokenContract.symbol(),
@@ -242,48 +872,31 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
         name,
         symbol,
         decimals: Number(decimals),
-        totalSupply: ethers.formatEther(totalSupply),
-        userBalance: ethers.formatEther(userBalance)
+        totalSupply: ethers.formatUnits(totalSupply, Number(decimals)),
+        userBalance: ethers.formatUnits(userBalance, Number(decimals))
       });
 
-      // Get PUSD data
-      const [pusdName, pusdSymbol, pusdDecimals, pusdBalance, pusdAllowance] = await Promise.all([
-        activePusdContract.name(),
-        activePusdContract.symbol(),
-        activePusdContract.decimals(),
-        activePusdContract.balanceOf(activeAccount),
-        activePusdContract.allowance(activeAccount, activeIdoContract?.address || '0x0000000000000000000000000000000000000000') // Assuming IDO contract is the spender
-      ]);
-
-      setPusdData({
-        name: pusdName,
-        symbol: pusdSymbol,
-        decimals: Number(pusdDecimals),
-        userBalance: ethers.formatEther(pusdBalance),
-        allowance: ethers.formatEther(pusdAllowance)
-      });
-
-      // Get IDO data (simplified to match your current NPT_IDO.sol)
+      // --- Get IDO Data ---
       const [
         tokensForSale,
         tokensSold,
-        tokensPerPUSD,
+        tokensPerEth,
         userTokensPurchased,
         tokensRemaining,
       ] = await Promise.all([
         activeIdoContract.tokensForSale(),
         activeIdoContract.tokensSold(),
-        activeIdoContract.tokensPerPUSD(), // Changed to tokensPerPUSD
+        activeIdoContract.tokensPerETH(),
         activeIdoContract.tokensPurchased(activeAccount),
         activeIdoContract.tokensRemaining(),
       ]);
 
       setIdoData({
-        tokensForSale: ethers.formatEther(tokensForSale),
-        tokensSold: ethers.formatEther(tokensSold),
-        tokensPerPUSD: ethers.formatUnits(tokensPerPUSD, 18), // Explicitly format with 18 decimals
-        userTokensPurchased: ethers.formatEther(userTokensPurchased),
-        tokensRemaining: ethers.formatEther(tokensRemaining),
+        tokensForSale: ethers.formatUnits(tokensForSale, Number(decimals)),
+        tokensSold: ethers.formatUnits(tokensSold, Number(decimals)),
+        tokensPerEth: ethers.formatUnits(tokensPerEth, Number(decimals)),
+        userTokensPurchased: ethers.formatUnits(userTokensPurchased, Number(decimals)),
+        tokensRemaining: ethers.formatUnits(tokensRemaining, Number(decimals)),
       });
 
       // Get user's native ETH balance
@@ -300,23 +913,18 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   };
 
-  const buyTokens = async (pusdAmount: string): Promise<string> => {
-    if (!provider || !account || !idoContract || !pusdContract) {
+  const buyTokens = async (ethAmount: string): Promise<string> => {
+    if (!provider || !account || !idoContract) {
       throw new Error('Web3 not initialized');
     }
 
     try {
       const signer = await provider.getSigner();
       const idoContractWithSigner = idoContract.connect(signer);
-      const pusdContractWithSigner = pusdContract.connect(signer);
       
-      // Approve PUSD for the IDO contract
-      const approveTx = await pusdContractWithSigner.approve(idoContractWithSigner.address, ethers.parseEther(pusdAmount));
-      await approveTx.wait();
-
-      // Buy tokens using the approved PUSD amount
+      // Buy tokens by sending ETH as value
       const tx = await idoContractWithSigner.buy({
-        value: ethers.parseEther(pusdAmount) // The buy function expects PUSD amount, not ETH
+        value: ethers.parseEther(ethAmount) // The buy function expects ETH amount
       });
 
       await tx.wait();
@@ -329,25 +937,6 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     }
   };
 
-  const approvePUSD = async (amount: string): Promise<string> => {
-    if (!provider || !account || !pusdContract) {
-      throw new Error('Web3 not initialized');
-    }
-
-    try {
-      const signer = await provider.getSigner();
-      const pusdContractWithSigner = pusdContract.connect(signer);
-
-      const tx = await pusdContractWithSigner.approve(idoContract?.address || '0x0000000000000000000000000000000000000000', ethers.parseEther(amount));
-      await tx.wait();
-      await refreshData();
-      return tx.hash;
-    } catch (err: any) {
-      console.error('Error approving PUSD:', err);
-      throw new Error(err.message || 'Failed to approve PUSD');
-    }
-  };
-
   const clearError = () => setError(null);
 
   const value: Web3ContextType = {
@@ -357,15 +946,15 @@ export const Web3Provider: React.FC<Web3ProviderProps> = ({ children }) => {
     provider,
     tokenContract,
     idoContract,
-    pusdContract, // Add pusdContract to context value
+    // pusdContract, // Add pusdContract to context value
     tokenData,
-    pusdData, // Add pusdData to context value
+    // pusdData, // Add pusdData to context value
     idoData,
     userEthBalance, // Add userEthBalance to context value
     connectWallet,
     disconnectWallet,
     buyTokens,
-    approvePUSD, // Add approvePUSD to context value
+    // approvePUSD, // Add approvePUSD to context value
     refreshData,
     error,
     clearError

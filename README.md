@@ -10,12 +10,12 @@
 
 ## 🌟 Overview
 
-NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that enables users to participate in Initial DEX Offerings (IDOs) for NexaPay Token (NPT) using PUSD stablecoin. The platform features a stunning cyberpunk UI, seamless Web3 integration, and robust smart contract functionality.
+NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that enables users to participate in Initial DEX Offerings (IDOs) for NexaPay Token (NPT) using Sepolia ETH. The platform features a stunning cyberpunk UI, seamless Web3 integration, and robust smart contract functionality.
 
 ### ✨ Key Features
 
 - **🔗 Wallet Integration**: MetaMask connectivity with automatic network detection
-- **💰 Token Purchase**: Real-time PUSD to NPT conversion with live price feeds
+- **💰 Token Purchase**: Real-time ETH to NPT conversion with live price feeds
 - **📊 Live Statistics**: Dynamic sale progress, fundraising goals, and user balances
 - **🎨 Cyberpunk UI**: Immersive dark theme with neon gradients and animations
 - **📱 Responsive Design**: Optimized for desktop, tablet, and mobile devices
@@ -30,9 +30,8 @@ NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that ena
 ### User Journey
 1. **Connect Wallet**: MetaMask integration for secure authentication
 2. **View Statistics**: Real-time sale progress and fundraising metrics
-3. **Approve PUSD**: Grant approval for the IDO contract to spend your PUSD tokens.
-4. **Calculate Purchase**: Enter PUSD amount and see NPT equivalent
-5. **Execute Purchase**: Confirm transaction and receive tokens
+3. **Calculate Purchase**: Enter ETH amount and see NPT equivalent
+4. **Execute Purchase**: Confirm transaction and receive tokens
 6. **Track History**: View all transactions with status updates
 
 ### Smart Contract Features
@@ -40,7 +39,8 @@ NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that ena
 - **Contribution Limits**: Minimum and maximum purchase amounts
 - **Sale Timing**: Configurable start and end dates
 - **Emergency Controls**: Pause/unpause functionality
-- **Fund Management**: Owner-controlled fund withdrawal
+- **Fund Management**: Owner-controlled fund withdrawal (ETH)
+- **Token Recovery**: Owner-controlled recovery of unsold NPT tokens
 
 ## 🛠️ Tech Stack
 
@@ -78,12 +78,10 @@ NexaPay IDO Platform is a cutting-edge decentralized application (dApp) that ena
 
 ### Blockchain Setup
 - **Sepolia Testnet** ETH for testing
-- **PUSD Test Tokens** for purchasing NPT
 - **Contract Addresses** (update in `.env.local` and Vercel environment variables):
   ```env
-  VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
-  VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
-  VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+  VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
+  VITE_PUBLIC_NPT_IDO_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
   VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
   VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
   ```
@@ -114,9 +112,8 @@ bun install
 ### 3. Configure Environment
 Create `.env.local` file in your project root with the following:
 ```env
-VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
-VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
-VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
+VITE_PUBLIC_NPT_IDO_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
 VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
 VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
 ```
@@ -145,9 +142,8 @@ This project uses client-side environment variables prefixed with `VITE_PUBLIC_`
 
 Create a `.env.local` file in your project root for local development:
 ```env
-VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0x806D505157a9858a8b533b4d6715e7a19C62C1a4
-VITE_PUBLIC_NPT_IDO_ADDRESS=0x47D6d06d34aA875e01d556c29f98e9E6841d9779
-VITE_PUBLIC_PUSD_TOKEN_ADDRESS=0x1099937F106CD6E182E318391C3E45044FDFd126
+VITE_PUBLIC_NEXAPAY_TOKEN_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
+VITE_PUBLIC_NPT_IDO_ADDRESS=0xFd1448D81153C9ED11DAC843EDeCd8F8D852c0BC
 VITE_PUBLIC_OWNER_ADDRESS=0x5399c22cf4Cd8312bAfe06223f25e7eF86810Bc0
 VITE_PUBLIC_INFURA_RPC_URL=https://sepolia.infura.io/v3/a43942b15b5c4e6385a88d4cb61f950d
 ```
@@ -250,11 +246,11 @@ npm run build
 ```solidity
 // ERC20 Token Contract
 contract NexaPayToken is ERC20, Ownable {
-    constructor(uint256 initialSupply)
+    constructor()
         ERC20("NexaPay Token", "NPT")
         Ownable(msg.sender)
     {
-        _mint(msg.sender, initialSupply * 10 ** decimals());
+        _mint(msg.sender, 1_000_000_000 * 10 ** decimals()); // 1 Billion NPT
     }
 }
 ```
@@ -264,23 +260,23 @@ contract NexaPayToken is ERC20, Ownable {
 // IDO Sale Contract
 contract NPT_IDO is ReentrancyGuard, Ownable {
     // Features:
-    // - Token purchase with PUSD
-    // - Exchange rate: NPT per PUSD (e.g., 200 NPT per 1 PUSD)
+    // - Token purchase with ETH
+    // - Exchange rate: NPT per ETH (e.g., 857 NPT per 1 ETH)
     // - Whitelist management
     // - Contribution limits
     // - Sale timing controls
     // - Emergency pause
-    // - Fund withdrawal (PUSD)
+    // - Fund withdrawal (ETH)
     // - Token recovery
 }
 ```
 
 ### Contract Functions
-- `buy(uint256 pusdAmount)` - Purchase tokens with PUSD
+- `buy()` - Purchase tokens with ETH (sends ETH as value)
 - `contributions(address)` - View user contributions
 - `tokensPurchased(address)` - View user token balance
 - `setPaused(bool)` - Emergency controls
-- `withdrawFunds(address, uint256)` - Fund management (PUSD)
+- `withdrawFunds(address, uint256)` - Fund management (ETH)
 - `recoverUnsoldTokens(address)` - Token recovery
 
 ## 🎨 UI/UX Design
